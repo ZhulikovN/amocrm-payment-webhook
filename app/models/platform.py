@@ -15,15 +15,12 @@ class Course(BaseModel):
 class PlatformPayload(BaseModel):
     """Payload для отправки на платформу при оплате."""
 
+    model_config = {"populate_by_name": True}
+
     courses: list[Course] = Field(..., description="Список курсов в заказе")
     first_name: str = Field(..., description="Имя клиента")
     last_name: str | None = Field(None, description="Фамилия клиента")
     email: str = Field(..., description="Email клиента")
     phone: str = Field(..., description="Телефон клиента")
-    class_number: int = Field(..., alias="class", description="Класс ученика (1-11)")
+    class_: int = Field(..., alias="class", serialization_alias="class", description="Класс ученика (1-11)")
     amount: int = Field(..., description="Общая сумма заказа")
-
-    class Config:
-        """Настройки модели."""
-
-        populate_by_name = True
