@@ -4,9 +4,11 @@ import pytest
 
 from app.config.subject_mapping import (
     get_class_mapping,
+    get_course_name_mapping,
     get_subject_mapping,
     get_subject_name_by_id,
     map_class_to_number,
+    map_course_to_name,
     map_subject_to_designation,
 )
 from app.settings import settings
@@ -196,4 +198,50 @@ class TestMapClassToNumber:
         """Тест что неизвестный ID класса вызывает ошибку."""
         with pytest.raises(ValueError, match="Маппинг для класса"):
             map_class_to_number(999999)
+
+
+class TestGetCourseNameMapping:
+    """Тесты для функции get_course_name_mapping."""
+
+    def test_mapping_contains_all_courses(self) -> None:
+        """Тест что маппинг содержит все 14 курсов."""
+        mapping = get_course_name_mapping()
+        assert len(mapping) == 14
+
+    def test_mapping_keys_are_integers(self) -> None:
+        """Тест что ключи маппинга - целые числа (ID из amoCRM)."""
+        mapping = get_course_name_mapping()
+        for key in mapping.keys():
+            assert isinstance(key, int)
+
+    def test_mapping_values_are_strings(self) -> None:
+        """Тест что значения маппинга - строки (названия курсов)."""
+        mapping = get_course_name_mapping()
+        for value in mapping.values():
+            assert isinstance(value, str)
+
+
+class TestMapCourseToName:
+    """Тесты для функции map_course_to_name."""
+
+    def test_map_course_all_myself(self) -> None:
+        """Тест маппинга курса 'Все сам'."""
+        assert map_course_to_name(settings.AMO_COURSE_ALL_MYSELF) == "Все сам"
+
+    def test_map_course_comfortik(self) -> None:
+        """Тест маппинга курса 'Комфортик'."""
+        assert map_course_to_name(settings.AMO_COURSE_COMFORTIK) == "Комфортик"
+
+    def test_map_course_standart(self) -> None:
+        """Тест маппинга курса 'Стандарт'."""
+        assert map_course_to_name(settings.AMO_COURSE_STANDART) == "Стандарт"
+
+    def test_map_course_platinum(self) -> None:
+        """Тест маппинга курса 'Платинум'."""
+        assert map_course_to_name(settings.AMO_COURSE_PLATINUM) == "Платинум"
+
+    def test_map_unknown_course_raises_error(self) -> None:
+        """Тест что неизвестный ID курса вызывает ошибку."""
+        with pytest.raises(ValueError, match="Маппинг для курса"):
+            map_course_to_name(999999)
 

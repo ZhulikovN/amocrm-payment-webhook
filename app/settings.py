@@ -147,6 +147,76 @@ class Settings(BaseSettings):
         description="ID значения '5-6 класс' в поле 'В каком классе учится'",
     )
 
+    AMO_COURSE_ALL_MYSELF: int = Field(
+        ...,
+        description="ID значения 'Все сам' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_COMFORTIK: int = Field(
+        ...,
+        description="ID значения 'Комфортик' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_NA_MAKSIMALKAH: int = Field(
+        ...,
+        description="ID значения 'На максималках' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_POLUGODOVOY_OGE: int = Field(
+        ...,
+        description="ID значения 'Полугодовой ОГЭ' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_NORMIS: int = Field(
+        ...,
+        description="ID значения 'Нормис' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_IMBA: int = Field(
+        ...,
+        description="ID значения 'Имба' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_SPETSKURS: int = Field(
+        ...,
+        description="ID значения 'Спецкурс' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_NU_NORM: int = Field(
+        ...,
+        description="ID значения 'Ну норм' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_SYN_MAMINOY_PODRUGE: int = Field(
+        ...,
+        description="ID значения 'Сын маминой подруги' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_PROHODKA_NA_BYUDZHET: int = Field(
+        ...,
+        description="ID значения 'Проходка на бюджет' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_SHIK_BLESK: int = Field(
+        ...,
+        description="ID значения 'Шик блеск' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_STANDART: int = Field(
+        ...,
+        description="ID значения 'Стандарт' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_SAMOSTOYATELNYY: int = Field(
+        ...,
+        description="ID значения 'Самостоятельный' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_PLATINUM: int = Field(
+        ...,
+        description="ID значения 'Платинум' в поле 'Какой курс куплен'",
+    )
+
     AMO_LEAD_FIELD_CLASS: int = Field(
         ...,
         description="ID поля 'В каком классе учится' в сделке (select)",

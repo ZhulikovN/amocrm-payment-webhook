@@ -136,3 +136,52 @@ def map_class_to_number(class_id: int) -> int:
         raise ValueError(f"Маппинг для класса с ID {class_id} не найден")
 
     return mapping[class_id]
+
+
+def get_course_name_mapping() -> dict[int, str]:
+    """
+    Возвращает маппинг ID курсов из amoCRM в название курса.
+
+    Ключ: enum_id из поля 'Какой курс куплен' в amoCRM
+    Значение: название курса
+
+    Returns:
+        dict[int, str]: Словарь маппинга курсов
+    """
+    return {
+        settings.AMO_COURSE_ALL_MYSELF: "Все сам",
+        settings.AMO_COURSE_COMFORTIK: "Комфортик",
+        settings.AMO_COURSE_NA_MAKSIMALKAH: "На максималках",
+        settings.AMO_COURSE_POLUGODOVOY_OGE: "Полугодовой ОГЭ",
+        settings.AMO_COURSE_NORMIS: "Нормис",
+        settings.AMO_COURSE_IMBA: "Имба",
+        settings.AMO_COURSE_SPETSKURS: "Спецкурс",
+        settings.AMO_COURSE_NU_NORM: "Ну норм",
+        settings.AMO_COURSE_SYN_MAMINOY_PODRUGE: "Сын маминой подруги",
+        settings.AMO_COURSE_PROHODKA_NA_BYUDZHET: "Проходка на бюджет",
+        settings.AMO_COURSE_SHIK_BLESK: "Шик блеск",
+        settings.AMO_COURSE_STANDART: "Стандарт",
+        settings.AMO_COURSE_SAMOSTOYATELNYY: "Самостоятельный",
+        settings.AMO_COURSE_PLATINUM: "Платинум",
+    }
+
+
+def map_course_to_name(course_id: int) -> str:
+    """
+    Преобразует ID курса из amoCRM в название курса.
+
+    Args:
+        course_id: ID курса из поля 'Какой курс куплен' в amoCRM
+
+    Returns:
+        str: Название курса
+
+    Raises:
+        ValueError: Если маппинг для курса не найден
+    """
+    mapping = get_course_name_mapping()
+
+    if course_id not in mapping:
+        raise ValueError(f"Маппинг для курса с ID {course_id} не найден")
+
+    return mapping[course_id]
