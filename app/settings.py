@@ -92,6 +92,16 @@ class Settings(BaseSettings):
         description="ID значения 'Профиль Саша' в поле 'Какой предмет выбрал'",
     )
 
+    AMO_SUBJECT_MATH_7_8: int = Field(
+        ...,
+        description="ID значения 'Математика 7-8 класс' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_MATH_OGE: int = Field(
+        ...,
+        description="ID значения 'Математика ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
     AMO_LEAD_FIELD_SUBJECTS: int = Field(
         ...,
         description="ID поля 'Какой предмет выбрал' в сделке (multiselect)",
