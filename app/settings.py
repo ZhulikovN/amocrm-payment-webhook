@@ -102,6 +102,56 @@ class Settings(BaseSettings):
         description="ID значения 'Математика ОГЭ' в поле 'Какой предмет выбрал'",
     )
 
+    AMO_CLASS_YOUNGER_9: int = Field(
+        ...,
+        description="ID значения 'Младше 9 класса' в поле 'В каком классе учится'",
+    )
+
+    AMO_CLASS_9: int = Field(
+        ...,
+        description="ID значения '9 класс' в поле 'В каком классе учится'",
+    )
+
+    AMO_CLASS_10: int = Field(
+        ...,
+        description="ID значения '10 класс' в поле 'В каком классе учится'",
+    )
+
+    AMO_CLASS_11: int = Field(
+        ...,
+        description="ID значения '11 класс' в поле 'В каком классе учится'",
+    )
+
+    AMO_CLASS_UNIVERSITY: int = Field(
+        ...,
+        description="ID значения 'Университет' в поле 'В каком классе учится'",
+    )
+
+    AMO_CLASS_NOT_STUDENT: int = Field(
+        ...,
+        description="ID значения 'Не ученик' в поле 'В каком классе учится'",
+    )
+
+    AMO_CLASS_7: int = Field(
+        ...,
+        description="ID значения '7 класс' в поле 'В каком классе учится'",
+    )
+
+    AMO_CLASS_8: int = Field(
+        ...,
+        description="ID значения '8 класс' в поле 'В каком классе учится'",
+    )
+
+    AMO_CLASS_5_6: int = Field(
+        ...,
+        description="ID значения '5-6 класс' в поле 'В каком классе учится'",
+    )
+
+    AMO_LEAD_FIELD_CLASS: int = Field(
+        ...,
+        description="ID поля 'В каком классе учится' в сделке (select)",
+    )
+
     AMO_LEAD_FIELD_SUBJECTS: int = Field(
         ...,
         description="ID поля 'Какой предмет выбрал' в сделке (multiselect)",

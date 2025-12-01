@@ -88,7 +88,51 @@ def map_subject_to_designation(subject_id: int) -> str:
         try:
             subject_name = get_subject_name_by_id(subject_id)
             raise ValueError(f"Маппинг для предмета '{subject_name}' (ID: {subject_id}) не найден")
-        except ValueError:
-            raise ValueError(f"Маппинг для предмета с ID {subject_id} не найден")
+        except ValueError as exc:
+            raise ValueError(f"Маппинг для предмета с ID {subject_id} не найден") from exc
 
     return mapping[subject_id]
+
+
+def get_class_mapping() -> dict[int, int]:
+    """
+    Возвращает маппинг ID классов из amoCRM в числовое значение класса.
+
+    Ключ: enum_id из поля 'В каком классе учится' в amoCRM
+    Значение: числовой номер класса для платформы
+
+    Returns:
+        dict[int, int]: Словарь маппинга классов
+    """
+    return {
+        settings.AMO_CLASS_5_6: 6,  # 5-6 класс → 6
+        settings.AMO_CLASS_7: 7,  # 7 класс → 7
+        settings.AMO_CLASS_8: 8,  # 8 класс → 8
+        settings.AMO_CLASS_9: 9,  # 9 класс → 9
+        settings.AMO_CLASS_10: 10,  # 10 класс → 10
+        settings.AMO_CLASS_11: 11,  # 11 класс → 11
+        settings.AMO_CLASS_YOUNGER_9: 8,  # Младше 9 класса → 8 (по умолчанию)
+        settings.AMO_CLASS_UNIVERSITY: 11,  # Университет → 11
+        settings.AMO_CLASS_NOT_STUDENT: 11,  # Не ученик → 11
+    }
+
+
+def map_class_to_number(class_id: int) -> int:
+    """
+    Преобразует ID класса из amoCRM в числовое значение для платформы.
+
+    Args:
+        class_id: ID класса из поля 'В каком классе учится' в amoCRM
+
+    Returns:
+        int: Номер класса (1-11) для платформы
+
+    Raises:
+        ValueError: Если маппинг для класса не найден
+    """
+    mapping = get_class_mapping()
+
+    if class_id not in mapping:
+        raise ValueError(f"Маппинг для класса с ID {class_id} не найден")
+
+    return mapping[class_id]

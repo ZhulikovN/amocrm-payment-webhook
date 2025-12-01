@@ -2,7 +2,13 @@
 
 import pytest
 
-from app.config.subject_mapping import get_subject_mapping, get_subject_name_by_id, map_subject_to_designation
+from app.config.subject_mapping import (
+    get_class_mapping,
+    get_subject_mapping,
+    get_subject_name_by_id,
+    map_class_to_number,
+    map_subject_to_designation,
+)
 from app.settings import settings
 
 
@@ -123,4 +129,71 @@ class TestGetSubjectNameById:
         """Тест что неизвестный ID вызывает ошибку."""
         with pytest.raises(ValueError, match="Неизвестный ID предмета"):
             get_subject_name_by_id(999999)
+
+
+class TestGetClassMapping:
+    """Тесты для функции get_class_mapping."""
+
+    def test_mapping_contains_all_classes(self) -> None:
+        """Тест что маппинг содержит все 9 вариантов классов."""
+        mapping = get_class_mapping()
+        assert len(mapping) == 9
+
+    def test_mapping_keys_are_integers(self) -> None:
+        """Тест что ключи маппинга - целые числа (ID из amoCRM)."""
+        mapping = get_class_mapping()
+        for key in mapping.keys():
+            assert isinstance(key, int)
+
+    def test_mapping_values_are_integers(self) -> None:
+        """Тест что значения маппинга - целые числа (номера классов)."""
+        mapping = get_class_mapping()
+        for value in mapping.values():
+            assert isinstance(value, int)
+            assert 1 <= value <= 11
+
+
+class TestMapClassToNumber:
+    """Тесты для функции map_class_to_number."""
+
+    def test_map_class_5_6(self) -> None:
+        """Тест маппинга 5-6 класс → 6."""
+        assert map_class_to_number(settings.AMO_CLASS_5_6) == 6
+
+    def test_map_class_7(self) -> None:
+        """Тест маппинга 7 класс → 7."""
+        assert map_class_to_number(settings.AMO_CLASS_7) == 7
+
+    def test_map_class_8(self) -> None:
+        """Тест маппинга 8 класс → 8."""
+        assert map_class_to_number(settings.AMO_CLASS_8) == 8
+
+    def test_map_class_9(self) -> None:
+        """Тест маппинга 9 класс → 9."""
+        assert map_class_to_number(settings.AMO_CLASS_9) == 9
+
+    def test_map_class_10(self) -> None:
+        """Тест маппинга 10 класс → 10."""
+        assert map_class_to_number(settings.AMO_CLASS_10) == 10
+
+    def test_map_class_11(self) -> None:
+        """Тест маппинга 11 класс → 11."""
+        assert map_class_to_number(settings.AMO_CLASS_11) == 11
+
+    def test_map_class_younger_9(self) -> None:
+        """Тест маппинга Младше 9 класса → 8."""
+        assert map_class_to_number(settings.AMO_CLASS_YOUNGER_9) == 8
+
+    def test_map_class_university(self) -> None:
+        """Тест маппинга Университет → 11."""
+        assert map_class_to_number(settings.AMO_CLASS_UNIVERSITY) == 11
+
+    def test_map_class_not_student(self) -> None:
+        """Тест маппинга Не ученик → 11."""
+        assert map_class_to_number(settings.AMO_CLASS_NOT_STUDENT) == 11
+
+    def test_map_unknown_class_raises_error(self) -> None:
+        """Тест что неизвестный ID класса вызывает ошибку."""
+        with pytest.raises(ValueError, match="Маппинг для класса"):
+            map_class_to_number(999999)
 
