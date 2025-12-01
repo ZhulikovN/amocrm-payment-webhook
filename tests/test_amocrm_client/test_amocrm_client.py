@@ -50,6 +50,8 @@ async def test_extract_lead_data_real_data() -> None:
     extracted = client.extract_lead_data(lead, contact)
 
     assert extracted["lead_id"] == lead_id
+    assert "price" in extracted
+    assert "courses_count" in extracted
     assert "class_enum_id" in extracted
     assert "subjects_enum_ids" in extracted
     assert "direction_enum_id" in extracted
@@ -62,6 +64,9 @@ async def test_extract_lead_data_real_data() -> None:
     assert isinstance(extracted["purchased_course_enum_ids"], list)
 
     print(f"\n✓ Lead ID: {extracted['lead_id']}")
+    print(f"✓ Price: {extracted['price']}")
+    print(f"✓ Courses count: {extracted['courses_count']}")
+    print(f"✓ Cost per course: {extracted['price'] // extracted['courses_count']}")
     print(f"✓ Class enum ID: {extracted['class_enum_id']}")
     print(f"✓ Subjects enum IDs: {extracted['subjects_enum_ids']}")
     print(f"✓ Direction enum ID: {extracted['direction_enum_id']}")
