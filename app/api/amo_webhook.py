@@ -43,7 +43,7 @@ async def handle_amo_webhook(request: Request) -> dict[str, str]:
         decoded = unquote_plus(text_body)
         parsed_data = parse_qs(decoded)
 
-        logger.info("Parsed webhook data (catalog event)")
+        # logger.info("Parsed webhook data: %s", parsed_data)
 
         # Проверяем тип события (catalogs[add] или catalogs[update])
         event_type = _detect_catalog_event_type(parsed_data)
@@ -287,8 +287,6 @@ def _extract_amount(parsed_data: dict[str, list[str]], event_type: str) -> int:
     Returns:
         int: Общая стоимость или 0
     """
-    # Ищем поле BILL_PRICE
-    # Формат: catalogs[update][0][custom_fields][7][code]: ['BILL_PRICE']
     for key, values in parsed_data.items():
         if f"catalogs[{event_type}][0][custom_fields]" in key and "[code]" in key:
             if values and values[0] == "BILL_PRICE":
