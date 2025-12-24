@@ -42,11 +42,9 @@ class PlatformClient:
         """
         logger.info("Отправка данных на платформу: %s", self.platform_url)
 
-        # Сериализуем payload в JSON
-        body_dict = payload.model_dump(mode="json", exclude_none=False)
+        body_dict = payload.model_dump(mode="json", exclude_none=False, by_alias=True)
         body_str = json.dumps(body_dict, separators=(",", ":"), ensure_ascii=False)
 
-        # Генерируем HMAC SHA256 подпись
         signature = self._generate_signature(body_str)
 
         headers = {
