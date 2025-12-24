@@ -11,7 +11,6 @@ from tenacity import (
     wait_exponential,
 )
 
-from app.config.subject_mapping import map_purchase_count_to_number
 from app.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -187,18 +186,6 @@ class AmoCRMClient:
         lead_custom_fields = self._parse_custom_fields(lead.get("custom_fields_values", []))
 
         price = lead.get("price", 0)
-        courses_count_enum_id = lead_custom_fields.get(settings.AMO_LEAD_FIELD_COURSES_COUNT)
-
-        if courses_count_enum_id:
-            try:
-                courses_count = map_purchase_count_to_number(courses_count_enum_id)
-                logger.info("Mapped courses count: enum_id=%s → count=%s", courses_count_enum_id, courses_count)
-            except ValueError as e:
-                logger.warning("Error mapping courses_count: %s, using default: 1", e)
-                courses_count = 1
-        else:
-            logger.info("No courses_count field found, using default: 1")
-            courses_count = 1
 
         class_enum_id = lead_custom_fields.get(settings.AMO_LEAD_FIELD_CLASS)
         subjects_enum_ids = lead_custom_fields.get(settings.AMO_LEAD_FIELD_SUBJECTS, [])
@@ -226,9 +213,8 @@ class AmoCRMClient:
                 contact_email = values[0].get("value")
 
         logger.info(
-            "Extracted lead data: price=%s, courses_count=%s, class=%s, subjects=%s, direction=%s",
+            "Extracted lead data: price=%s, class=%s, subjects=%s, direction=%s",
             price,
-            courses_count,
             class_enum_id,
             subjects_enum_ids,
             direction_enum_id,
@@ -238,7 +224,6 @@ class AmoCRMClient:
         return {
             "lead_id": lead.get("id"),
             "price": price,
-            "courses_count": courses_count,
             "class_enum_id": class_enum_id,
             "subjects_enum_ids": subjects_enum_ids,
             "direction_enum_id": direction_enum_id,

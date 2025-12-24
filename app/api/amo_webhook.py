@@ -1,6 +1,7 @@
 """API endpoint для обработки webhook от amoCRM."""
 
 import logging
+from typing import Any
 from urllib.parse import parse_qs, unquote_plus
 
 from fastapi import APIRouter, HTTPException, Request
@@ -13,7 +14,7 @@ router = APIRouter(prefix="/amo", tags=["amoCRM Webhooks"])
 
 
 @router.post("/webhook/handle")
-async def handle_amo_webhook(request: Request) -> dict[str, str]:
+async def handle_amo_webhook(request: Request) -> dict[str, Any]:
     """
     Обрабатывает webhook от amoCRM о добавлении/изменении элемента каталога 'Счета/покупки'.
 
