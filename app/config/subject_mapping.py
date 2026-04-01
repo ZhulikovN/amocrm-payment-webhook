@@ -185,3 +185,51 @@ def map_course_to_name(course_id: int) -> str:
         raise ValueError(f"Маппинг для курса с ID {course_id} не найден")
 
     return mapping[course_id]
+
+
+def get_course_name_text_mapping() -> dict[str, str]:
+    """
+    Возвращает маппинг текстовых названий курсов из amoCRM в названия для платформы.
+
+    Ключ: название курса из webhook amoCRM
+    Значение: название курса для платформы
+
+    Returns:
+        dict[str, str]: Словарь маппинга названий курсов
+    """
+    return {
+        # Полугодовые курсы
+        "Полугодовой 2к26 ОГЭ": "Полугодовой 2к26 9 класс",
+        "Полугодовой 2к26 10 класс": "Полугодовой 2к26 10 класс",
+        "Полугодовой 2к26 11 класс": "Полугодовой 2к26 11 класс",
+        "Весенний курс 2к26 ЕГЭ 11 класс": "Весенний курс 2к26 ЕГЭ 11 класс",
+
+        # Математика
+        "Математика 7 класс 2к26": "Математика 7 класс",
+        "Математика 8 класс 2к26": "Математика 8 класс",
+        "Скорая помощь 2к26 10 класс": "Скорая помощь 2к26 10 класс",
+    }
+
+
+def map_course_name_text(course_name_from_amo: str) -> str:
+    """
+    Преобразовать текстовое название курса из amoCRM в название для платформы.
+
+    Args:
+        course_name_from_amo: Название курса из webhook amoCRM
+
+    Returns:
+        str: Название курса для платформы (если маппинг найден) или исходное название
+
+    Raises:
+        ValueError: Если маппинг для курса не найден
+    """
+    mapping = get_course_name_text_mapping()
+
+    if course_name_from_amo not in mapping:
+        raise ValueError(
+            f"Маппинг для курса '{course_name_from_amo}' не найден. "
+            f"Доступные курсы: {', '.join(mapping.keys())}"
+        )
+
+    return mapping[course_name_from_amo]

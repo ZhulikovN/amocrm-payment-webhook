@@ -3,7 +3,11 @@
 import logging
 from typing import Any
 
-from app.config.subject_mapping import map_class_to_number, map_subject_to_designation
+from app.config.subject_mapping import (
+    map_class_to_number,
+    map_course_name_text,
+    map_subject_to_designation,
+)
 from app.models.platform import Course, PlatformPayload
 
 logger = logging.getLogger(__name__)
@@ -116,10 +120,17 @@ class PaymentPayloadMapper:
                 logger.warning("Пропускаем позицию %s: пустое название", idx)
                 continue
 
+            try:
+                mapped_name = map_course_name_text(description)
+                logger.info("Название курса замаплено: '%s' → '%s'", description, mapped_name)
+            except ValueError as e:
+                logger.error("Ошибка маппинга названия курса: %s", e)
+                raise
+
             subject_designation = map_subject_to_designation(subject_enum_id)
 
             course = Course(
-                name=description,
+                name=mapped_name,
                 subject_designation=subject_designation,
                 cost=unit_price,
                 months=quantity,
