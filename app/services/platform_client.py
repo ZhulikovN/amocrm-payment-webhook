@@ -55,8 +55,8 @@ class PlatformClient:
         endpoint = f"{self.platform_url}/api/amo/payment/callback"
 
         logger.info("Sending POST %s", endpoint)
+        logger.info("Header X-API-KEY: %s", signature)
         logger.debug("Request body: %s", body_str)
-        logger.debug("Signature: %s", signature)
 
         async for attempt in AsyncRetrying(
             stop=stop_after_attempt(settings.MAX_RETRY_ATTEMPTS),
