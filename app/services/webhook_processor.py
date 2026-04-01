@@ -103,6 +103,7 @@ class CatalogWebhookProcessor:
         client_data = self.amo_client.extract_lead_data(lead_and_contact["lead"], lead_and_contact["contact"])
 
         logger.info("Данные клиента загружены: %s", client_data.get("contact_email"))
+        logger.info("Client data: %s", client_data)
 
         # 2. Маппим данные в payload платформы
         payload = self.mapper.map_to_platform_payload(
@@ -113,12 +114,28 @@ class CatalogWebhookProcessor:
 
         logger.info("Payload создан для отправки на платформу")
 
+        # # Логируем финальный payload в JSON формате
+        # import json
+        # payload_dict = payload.model_dump(mode="json", exclude_none=False, by_alias=True)
+        # payload_json = json.dumps(payload_dict, separators=(",", ":"), ensure_ascii=False, indent=2)
+        #
+        # logger.info("=" * 80)
+        # logger.info("ФИНАЛЬНЫЙ PAYLOAD ДЛЯ ПЛАТФОРМЫ:")
+        # logger.info("=" * 80)
+        # logger.info("%s", payload_json)
+        # logger.info("=" * 80)
+        # logger.info("Payload size: %s bytes", len(payload_json))
+        # logger.info("=" * 80)
+
         # 3. Отправляем на платформу
+        # TODO: Раскомментировать после тестирования
         response = await self.platform_client.send_payment(payload)
-
-        logger.info("✓ Платеж успешно отправлен на платформу: %s", response)
-
+        logger.info("Платеж успешно отправлен на платформу: %s", response)
         return response
+
+        # # ТЕСТОВЫЙ РЕЖИМ: не отправляем на платформу
+        # logger.warning("⚠️  ТЕСТОВЫЙ РЕЖИМ: отправка на платформу отключена")
+        # return {"status": "test_mode", "message": "Payload готов, но не отправлен"}
 
     def _detect_event_type(self, parsed_data: dict[str, list[str]]) -> str | None:
         """
@@ -185,7 +202,14 @@ class CatalogWebhookProcessor:
             return None
 
     def _extract_lead_id(self, parsed_data: dict[str, list[str]], event_type: str) -> int | None:
-        """Извлечь ID сделки из поля LINK_TO_LEAD."""
+        """
+        Извлечь ID сделки из поля LINK_TO_LEAD или BILL_COMMENT.
+        
+        Приоритет:
+        1. LINK_TO_LEAD (основное поле для связи со сделкой)
+        2. BILL_COMMENT (fallback - ищет ссылку в комментарии)
+        """
+        # Приоритет 1: Поле LINK_TO_LEAD
         for key, values in parsed_data.items():
             if f"catalogs[{event_type}][0][custom_fields]" in key and "[code]" in key:
                 if values and values[0] == "LINK_TO_LEAD":
@@ -199,10 +223,29 @@ class CatalogWebhookProcessor:
                         match = re.search(r"/leads/detail/(\d+)", link[0])
                         if match:
                             lead_id = int(match.group(1))
-                            logger.info("Извлечен lead_id: %s из ссылки: %s", lead_id, link[0])
+                            logger.info("Извлечен lead_id: %s из LINK_TO_LEAD: %s", lead_id, link[0])
                             return lead_id
 
-        logger.warning("Поле LINK_TO_LEAD не найдено в webhook")
+        logger.warning("Поле LINK_TO_LEAD не найдено, проверяем BILL_COMMENT")
+
+        # Приоритет 2: Поле BILL_COMMENT (fallback)
+        for key, values in parsed_data.items():
+            if f"catalogs[{event_type}][0][custom_fields]" in key and "[code]" in key:
+                if values and values[0] == "BILL_COMMENT":
+                    parts = key.split("[")
+                    field_index = f"[{parts[4]}"
+
+                    value_key = f"catalogs[{event_type}][0][custom_fields]{field_index}[values][0][value]"
+                    comment = parsed_data.get(value_key, [])
+
+                    if comment:
+                        match = re.search(r"/leads/detail/(\d+)", comment[0])
+                        if match:
+                            lead_id = int(match.group(1))
+                            logger.info("Извлечен lead_id: %s из BILL_COMMENT: %s", lead_id, comment[0])
+                            return lead_id
+
+        logger.warning("Ссылка на сделку не найдена ни в LINK_TO_LEAD, ни в BILL_COMMENT")
         return None
 
     def _extract_items(self, parsed_data: dict[str, list[str]], event_type: str) -> list[dict[str, str | int]]:
