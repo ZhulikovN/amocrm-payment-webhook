@@ -272,6 +272,11 @@ class Settings(BaseSettings):
         description="ID поля 'В каком классе учится' в сделке (select)",
     )
 
+    AMO_LEAD_FIELD_WORDPRESS_CLASS: int = Field(
+        ...,
+        description="ID поля 'wordpress_class' в сделке (textarea, fallback для класса)",
+    )
+
     AMO_LEAD_FIELD_COURSES_COUNT: int = Field(
         ...,
         description="ID поля 'Купленных курсов' в сделке (numeric)",
