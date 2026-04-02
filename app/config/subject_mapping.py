@@ -117,12 +117,16 @@ def get_class_mapping() -> dict[int, int]:
     }
 
 
-def map_class_to_number(class_id: int) -> int:
+def map_class_to_number(class_id: int | str) -> int:
     """
     Преобразует ID класса из amoCRM в числовое значение для платформы.
+    
+    Поддерживает два формата:
+    1. Старый формат: enum_id (1374875) → маппинг в число
+    2. Новый формат: текст ("11") → прямое преобразование в число
 
     Args:
-        class_id: ID класса из поля 'В каком классе учится' в amoCRM
+        class_id: ID класса (enum_id) или текст ("7", "8", "9", "10", "11")
 
     Returns:
         int: Номер класса (1-11) для платформы
@@ -130,6 +134,17 @@ def map_class_to_number(class_id: int) -> int:
     Raises:
         ValueError: Если маппинг для класса не найден
     """
+    # Если пришла строка - пробуем преобразовать напрямую
+    if isinstance(class_id, str):
+        try:
+            class_number = int(class_id)
+            if 1 <= class_number <= 11:
+                return class_number
+            raise ValueError(f"Класс {class_number} вне диапазона 1-11")
+        except ValueError:
+            raise ValueError(f"Невозможно преобразовать класс '{class_id}' в число")
+    
+    # Если пришло число - проверяем маппинг (старый формат с enum_id)
     mapping = get_class_mapping()
 
     if class_id not in mapping:
@@ -138,53 +153,38 @@ def map_class_to_number(class_id: int) -> int:
     return mapping[class_id]
 
 
-def get_course_name_mapping() -> dict[int, str]:
+def get_tariff_suffix_mapping() -> dict[int, str]:
     """
-    Возвращает маппинг ID курсов из amoCRM в название курса.
+    Возвращает маппинг ID тарифов в суффикс для названия курса.
 
     Ключ: enum_id из поля 'Какой курс куплен' в amoCRM
-    Значение: название курса
+    Значение: суффикс для добавления к названию курса
 
     Returns:
-        dict[int, str]: Словарь маппинга курсов
+        dict[int, str]: Словарь маппинга тарифов
     """
     return {
-        settings.AMO_COURSE_ALL_MYSELF: "Все сам",
-        settings.AMO_COURSE_COMFORTIK: "Комфортик",
-        settings.AMO_COURSE_NA_MAKSIMALKAH: "На максималках",
-        settings.AMO_COURSE_POLUGODOVOY_OGE: "Полугодовой ОГЭ",
-        settings.AMO_COURSE_NORMIS: "Нормис",
-        settings.AMO_COURSE_IMBA: "Имба",
-        settings.AMO_COURSE_SPETSKURS: "Спецкурс",
-        settings.AMO_COURSE_NU_NORM: "Ну норм",
-        settings.AMO_COURSE_SYN_MAMINOY_PODRUGE: "Сын маминой подруги",
-        settings.AMO_COURSE_PROHODKA_NA_BYUDZHET: "Проходка на бюджет",
-        settings.AMO_COURSE_SHIK_BLESK: "Шик блеск",
-        settings.AMO_COURSE_STANDART: "Стандарт",
+        settings.AMO_COURSE_STANDART: "Standart",
         settings.AMO_COURSE_SAMOSTOYATELNYY: "Самостоятельный",
-        settings.AMO_COURSE_PLATINUM: "Платинум",
+        settings.AMO_COURSE_PRO: "PRO",
     }
 
 
-def map_course_to_name(course_id: int) -> str:
+def get_tariff_suffix(tariff_id: int | None) -> str:
     """
-    Преобразует ID курса из amoCRM в название курса.
+    Получить суффикс тарифа для названия курса.
 
     Args:
-        course_id: ID курса из поля 'Какой курс куплен' в amoCRM
+        tariff_id: ID тарифа из поля 'Какой курс куплен' или None
 
     Returns:
-        str: Название курса
-
-    Raises:
-        ValueError: Если маппинг для курса не найден
+        str: Суффикс для названия курса (пустая строка если тариф не найден или None)
     """
-    mapping = get_course_name_mapping()
-
-    if course_id not in mapping:
-        raise ValueError(f"Маппинг для курса с ID {course_id} не найден")
-
-    return mapping[course_id]
+    if tariff_id is None:
+        return ""
+    
+    mapping = get_tariff_suffix_mapping()
+    return mapping.get(tariff_id, "")
 
 
 def get_course_name_text_mapping() -> dict[str, str]:
@@ -199,17 +199,21 @@ def get_course_name_text_mapping() -> dict[str, str]:
     """
     return {
         # Полугодовые курсы
-        "Полугодовой 2к26 ОГЭ": "Полугодовой 2к26 9 класс",
-        "Полугодовой 2к26 10 класс": "Полугодовой 2к26 10 класс",
-        "Полугодовой 2к26 11 класс": "Полугодовой 2к26 11 класс",
-        "Весенний курс 2к26 ЕГЭ 11 класс": "Весенний курс 2к26 ЕГЭ 11 класс",
+        # "Полугодовой 2к26 ОГЭ": "Полугодовой 2к26 9 класс",
+        # "Полугодовой 2к26 10 класс": "Полугодовой 2к26 10 класс",
+        # "Полугодовой 2к26 11 класс": "Полугодовой 2к26 11 класс",
+        "Весенний курс 2к26 ЕГЭ 11 класс": "Весенний курс 2к26 11 класс",
+        "Весенний курс 2к26 ЕГЭ 10 класс": "Весенний курс 2к26 10 класс",
+        "Весенний курс 2к26 ОГЭ": "Весенний курс 2к26 9 класс",
 
-        # Математика
-        "Математика 7 класс 2к26": "Математика 7 класс",
-        "Математика 8 класс 2к26": "Математика 8 класс",
-        "Скорая помощь 2к26 10 класс": "Скорая помощь 2к26 10 класс",
-        "Скорая помощь 2к26 11 класс": "Скорая помощь 2к26 11 класс",
-        "Скорая помощь 2к26 ОГЭ": "Скорая помощь 2к26 9 класс",
+        # # Математика
+        # "Математика 7 класс 2к26": "Математика 7 класс",
+        # "Математика 8 класс 2к26": "Математика 8 класс",
+
+        # # Скорая помощь
+        # "Скорая помощь 2к26 10 класс": "Скорая помощь 2к26 10 класс",
+        # "Скорая помощь 2к26 11 класс": "Скорая помощь 2к26 11 класс",
+        # "Скорая помощь 2к26 ОГЭ": "Скорая помощь 2к26 9 класс",
 
     }
 

@@ -43,7 +43,9 @@ class PlatformClient:
         logger.info("Отправка данных на платформу: %s", self.platform_url)
 
         body_dict = payload.model_dump(mode="json", exclude_none=False, by_alias=True)
+        logger.info("Body dict после model_dump: %s", body_dict)
         body_str = json.dumps(body_dict, separators=(",", ":"), ensure_ascii=False)
+        logger.info("Body string для HMAC: %s", body_str)
 
         signature = self._generate_signature(body_str)
 
@@ -55,8 +57,8 @@ class PlatformClient:
         endpoint = f"{self.platform_url}/api/amo/payment/callback"
 
         logger.info("Sending POST %s", endpoint)
+        logger.info("Header X-API-KEY: %s", signature)
         logger.debug("Request body: %s", body_str)
-        logger.debug("Signature: %s", signature)
 
         async for attempt in AsyncRetrying(
             stop=stop_after_attempt(settings.MAX_RETRY_ATTEMPTS),

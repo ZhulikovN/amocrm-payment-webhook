@@ -187,7 +187,13 @@ class AmoCRMClient:
 
         price = lead.get("price", 0)
 
+        # Класс: Приоритет 1 - основное поле, Приоритет 2 - wordpress_class (fallback)
         class_enum_id = lead_custom_fields.get(settings.AMO_LEAD_FIELD_CLASS)
+        if not class_enum_id:
+            class_enum_id = lead_custom_fields.get(settings.AMO_LEAD_FIELD_WORDPRESS_CLASS)
+            if class_enum_id:
+                logger.info(f"Class taken from wordpress_class (fallback): {class_enum_id}")
+        
         subjects_enum_ids = lead_custom_fields.get(settings.AMO_LEAD_FIELD_SUBJECTS, [])
         direction_enum_id = lead_custom_fields.get(settings.AMO_LEAD_FIELD_DIRECTION)
         purchased_course_enum_ids = lead_custom_fields.get(settings.AMO_LEAD_FIELD_PURCHASED_COURSE, [])
@@ -208,7 +214,13 @@ class AmoCRMClient:
             values = field.get("values", [])
 
             if field_code == "PHONE" and values:
-                contact_phone = values[0].get("value")
+                raw_phone = values[0].get("value")
+                # Нормализация: убираем все кроме цифр
+                contact_phone = "".join(c for c in raw_phone if c.isdigit()) if raw_phone else None
+                # Заменяем 7 на 8 если начинается с 7
+                if contact_phone and contact_phone.startswith("7") and len(contact_phone) == 11:
+                    contact_phone = "8" + contact_phone[1:]
+                logger.debug(f"Phone normalized: {raw_phone} → {contact_phone}")
             elif field_code == "EMAIL" and values:
                 contact_email = values[0].get("value")
 

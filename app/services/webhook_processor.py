@@ -114,28 +114,23 @@ class CatalogWebhookProcessor:
 
         logger.info("Payload создан для отправки на платформу")
 
-        # # Логируем финальный payload в JSON формате
-        # import json
-        # payload_dict = payload.model_dump(mode="json", exclude_none=False, by_alias=True)
-        # payload_json = json.dumps(payload_dict, separators=(",", ":"), ensure_ascii=False, indent=2)
-        #
-        # logger.info("=" * 80)
-        # logger.info("ФИНАЛЬНЫЙ PAYLOAD ДЛЯ ПЛАТФОРМЫ:")
-        # logger.info("=" * 80)
-        # logger.info("%s", payload_json)
-        # logger.info("=" * 80)
-        # logger.info("Payload size: %s bytes", len(payload_json))
-        # logger.info("=" * 80)
+        # Логируем финальный payload в JSON формате
+        import json
+        payload_dict = payload.model_dump(mode="json", exclude_none=False, by_alias=True)
+        payload_json = json.dumps(payload_dict, separators=(",", ":"), ensure_ascii=False, indent=2)
+
+        logger.info("=" * 80)
+        logger.info("ФИНАЛЬНЫЙ PAYLOAD ДЛЯ ПЛАТФОРМЫ:")
+        logger.info("=" * 80)
+        logger.info("%s", payload_json)
+        logger.info("=" * 80)
+        logger.info("Payload size: %s bytes", len(payload_json))
+        logger.info("=" * 80)
 
         # 3. Отправляем на платформу
-        # TODO: Раскомментировать после тестирования
         response = await self.platform_client.send_payment(payload)
         logger.info("Платеж успешно отправлен на платформу: %s", response)
         return response
-
-        # # ТЕСТОВЫЙ РЕЖИМ: не отправляем на платформу
-        # logger.warning("⚠️  ТЕСТОВЫЙ РЕЖИМ: отправка на платформу отключена")
-        # return {"status": "test_mode", "message": "Payload готов, но не отправлен"}
 
     def _detect_event_type(self, parsed_data: dict[str, list[str]]) -> str | None:
         """

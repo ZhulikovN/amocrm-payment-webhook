@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 from app.config.subject_mapping import (
+    get_tariff_suffix,
     map_class_to_number,
     map_course_name_text,
     map_subject_to_designation,
@@ -59,10 +60,14 @@ class PaymentPayloadMapper:
         class_number = map_class_to_number(class_enum_id)
         logger.info("Mapped class: enum_id=%s → number=%s", class_enum_id, class_number)
 
+        # Получаем тариф (первый из списка или None)
+        purchased_course_enum_ids = client_data.get("purchased_course_enum_ids", [])
+        tariff_id = purchased_course_enum_ids[0] if purchased_course_enum_ids else None
+        
         first_name, last_name = self._parse_name(contact_name)
 
         # Строим список курсов из позиций счета + предметов из amoCRM
-        courses = self._build_courses(items, subjects_enum_ids)
+        courses = self._build_courses(items, subjects_enum_ids, tariff_id)
 
         payload = PlatformPayload(
             courses=courses,
@@ -89,6 +94,7 @@ class PaymentPayloadMapper:
         self,
         items: list[dict[str, str | int]],
         subjects_enum_ids: list[int],
+        tariff_id: int | None = None,
     ) -> list[Course]:
         """
         Создать список курсов из позиций счета + предметов из amoCRM.
@@ -96,6 +102,7 @@ class PaymentPayloadMapper:
         Args:
             items: Позиции счета [{description, unit_price, quantity}, ...]
             subjects_enum_ids: Список enum_id предметов из amoCRM
+            tariff_id: ID тарифа из поля 'Какой курс куплен' (для добавления к названию)
 
         Returns:
             list[Course]: Список курсов для платформы
@@ -110,6 +117,7 @@ class PaymentPayloadMapper:
             )
 
         courses = []
+        tariff_suffix = get_tariff_suffix(tariff_id)
 
         for idx, (item, subject_enum_id) in enumerate(zip(items, subjects_enum_ids)):
             description = str(item.get("description", ""))
@@ -127,10 +135,17 @@ class PaymentPayloadMapper:
                 logger.error("Ошибка маппинга названия курса: %s", e)
                 raise
 
+            # Добавляем тариф к названию если это "Весенний курс 2к26" и тариф задан
+            if tariff_suffix and "Весенний курс 2к26" in mapped_name:
+                final_name = f"{mapped_name} {tariff_suffix}"
+                logger.info("Добавлен тариф к названию: '%s' → '%s'", mapped_name, final_name)
+            else:
+                final_name = mapped_name
+
             subject_designation = map_subject_to_designation(subject_enum_id)
 
             course = Course(
-                name=mapped_name,
+                name=final_name,
                 subject_designation=subject_designation,
                 cost=unit_price,
                 months=quantity,

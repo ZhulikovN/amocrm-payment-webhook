@@ -147,61 +147,6 @@ class Settings(BaseSettings):
         description="ID значения '5-6 класс' в поле 'В каком классе учится'",
     )
 
-    AMO_COURSE_ALL_MYSELF: int = Field(
-        ...,
-        description="ID значения 'Все сам' в поле 'Какой курс куплен'",
-    )
-
-    AMO_COURSE_COMFORTIK: int = Field(
-        ...,
-        description="ID значения 'Комфортик' в поле 'Какой курс куплен'",
-    )
-
-    AMO_COURSE_NA_MAKSIMALKAH: int = Field(
-        ...,
-        description="ID значения 'На максималках' в поле 'Какой курс куплен'",
-    )
-
-    AMO_COURSE_POLUGODOVOY_OGE: int = Field(
-        ...,
-        description="ID значения 'Полугодовой ОГЭ' в поле 'Какой курс куплен'",
-    )
-
-    AMO_COURSE_NORMIS: int = Field(
-        ...,
-        description="ID значения 'Нормис' в поле 'Какой курс куплен'",
-    )
-
-    AMO_COURSE_IMBA: int = Field(
-        ...,
-        description="ID значения 'Имба' в поле 'Какой курс куплен'",
-    )
-
-    AMO_COURSE_SPETSKURS: int = Field(
-        ...,
-        description="ID значения 'Спецкурс' в поле 'Какой курс куплен'",
-    )
-
-    AMO_COURSE_NU_NORM: int = Field(
-        ...,
-        description="ID значения 'Ну норм' в поле 'Какой курс куплен'",
-    )
-
-    AMO_COURSE_SYN_MAMINOY_PODRUGE: int = Field(
-        ...,
-        description="ID значения 'Сын маминой подруги' в поле 'Какой курс куплен'",
-    )
-
-    AMO_COURSE_PROHODKA_NA_BYUDZHET: int = Field(
-        ...,
-        description="ID значения 'Проходка на бюджет' в поле 'Какой курс куплен'",
-    )
-
-    AMO_COURSE_SHIK_BLESK: int = Field(
-        ...,
-        description="ID значения 'Шик блеск' в поле 'Какой курс куплен'",
-    )
-
     AMO_COURSE_STANDART: int = Field(
         ...,
         description="ID значения 'Стандарт' в поле 'Какой курс куплен'",
@@ -212,64 +157,19 @@ class Settings(BaseSettings):
         description="ID значения 'Самостоятельный' в поле 'Какой курс куплен'",
     )
 
-    AMO_COURSE_PLATINUM: int = Field(
+    AMO_COURSE_PRO: int = Field(
         ...,
-        description="ID значения 'Платинум' в поле 'Какой курс куплен'",
-    )
-
-    AMO_PURCHASE_COUNT_1: int = Field(
-        ...,
-        description="ID значения '1' в поле 'Купленных курсов'",
-    )
-
-    AMO_PURCHASE_COUNT_2: int = Field(
-        ...,
-        description="ID значения '2' в поле 'Купленных курсов'",
-    )
-
-    AMO_PURCHASE_COUNT_3: int = Field(
-        ...,
-        description="ID значения '3' в поле 'Купленных курсов'",
-    )
-
-    AMO_PURCHASE_COUNT_4: int = Field(
-        ...,
-        description="ID значения '4' в поле 'Купленных курсов'",
-    )
-
-    AMO_PURCHASE_COUNT_5: int = Field(
-        ...,
-        description="ID значения '5' в поле 'Купленных курсов'",
-    )
-
-    AMO_PURCHASE_COUNT_6: int = Field(
-        ...,
-        description="ID значения '6' в поле 'Купленных курсов'",
-    )
-
-    AMO_PURCHASE_COUNT_7: int = Field(
-        ...,
-        description="ID значения '7' в поле 'Купленных курсов'",
-    )
-
-    AMO_PURCHASE_COUNT_8: int = Field(
-        ...,
-        description="ID значения '8' в поле 'Купленных курсов'",
-    )
-
-    AMO_PURCHASE_COUNT_9: int = Field(
-        ...,
-        description="ID значения '9' в поле 'Купленных курсов'",
-    )
-
-    AMO_PURCHASE_COUNT_10: int = Field(
-        ...,
-        description="ID значения '10' в поле 'Купленных курсов'",
+        description="ID значения 'ПРО' в поле 'Какой курс куплен'",
     )
 
     AMO_LEAD_FIELD_CLASS: int = Field(
         ...,
         description="ID поля 'В каком классе учится' в сделке (select)",
+    )
+
+    AMO_LEAD_FIELD_WORDPRESS_CLASS: int = Field(
+        ...,
+        description="ID поля 'wordpress_class' в сделке (textarea, fallback для класса)",
     )
 
     AMO_LEAD_FIELD_COURSES_COUNT: int = Field(
