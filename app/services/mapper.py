@@ -10,6 +10,7 @@ from app.config.subject_mapping import (
     map_subject_to_designation,
 )
 from app.models.platform import Course, PlatformPayload
+from app.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +118,6 @@ class PaymentPayloadMapper:
             )
 
         courses = []
-        tariff_suffix = get_tariff_suffix(tariff_id)
 
         for idx, (item, subject_enum_id) in enumerate(zip(items, subjects_enum_ids)):
             description = str(item.get("description", ""))
@@ -135,12 +135,47 @@ class PaymentPayloadMapper:
                 logger.error("Ошибка маппинга названия курса: %s", e)
                 raise
 
-            # Добавляем тариф к названию если это "Весенний курс 2к26" и тариф задан
-            if tariff_suffix and "Весенний курс 2к26" in mapped_name:
-                final_name = f"{mapped_name} {tariff_suffix}"
-                logger.info("Добавлен тариф к названию: '%s' → '%s'", mapped_name, final_name)
-            else:
-                final_name = mapped_name
+            # Добавляем тариф к названию ТОЛЬКО если курс поддерживает этот тариф
+            # Весенний курс 2к26: Standart (EN), PRO (EN), Самостоятельный (RU)
+            # Марафон 2к26: Базовый (RU), Стандарт (RU), ПРО (RU)
+            # Годовой 2к27: ТОЛЬКО Стандарт (RU)
+            final_name = mapped_name
+            
+            if tariff_id:
+                tariff_suffix = None
+                
+                # Весенний курс 2к26: тарифы на английском/русском
+                if "Весенний курс 2к26" in mapped_name:
+                    if tariff_id == settings.AMO_COURSE_STANDART:
+                        tariff_suffix = "Standart"  # Английский
+                    elif tariff_id == settings.AMO_COURSE_PRO:
+                        tariff_suffix = "PRO"  # Английский
+                    elif tariff_id == settings.AMO_COURSE_SAMOSTOYATELNYY:
+                        tariff_suffix = "Самостоятельный"  # Русский
+                    else:
+                        logger.warning("Тариф %s не поддерживается для Весенний курс 2к26, пропускаем", tariff_id)
+                
+                # Марафон 2к26: Базовый, Стандарт, ПРО (русский)
+                elif "Марафон 2к26" in mapped_name:
+                    if tariff_id == settings.AMO_COURSE_STANDART:
+                        tariff_suffix = "Стандарт"  # Русский
+                    elif tariff_id == settings.AMO_COURSE_PRO:
+                        tariff_suffix = "ПРО"  # Русский
+                    elif tariff_id == settings.AMO_COURSE_BAZOVYY:
+                        tariff_suffix = "Базовый"  # Русский
+                    else:
+                        logger.warning("Тариф %s не поддерживается для Марафон 2к26, пропускаем", tariff_id)
+                
+                # Годовой 2к27: ТОЛЬКО Стандарт (русский)
+                elif "Годовой 2к27" in mapped_name:
+                    if tariff_id == settings.AMO_COURSE_STANDART:
+                        tariff_suffix = "Стандарт"  # Русский
+                    else:
+                        logger.warning("Тариф %s не поддерживается для Годовой 2к27 (только Стандарт), пропускаем", tariff_id)
+                
+                if tariff_suffix:
+                    final_name = f"{mapped_name} {tariff_suffix}"
+                    logger.info("Добавлен тариф к названию: '%s' → '%s'", mapped_name, final_name)
 
             subject_designation = map_subject_to_designation(subject_enum_id)
 
