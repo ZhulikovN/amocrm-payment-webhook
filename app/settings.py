@@ -162,6 +162,11 @@ class Settings(BaseSettings):
         description="ID значения 'ПРО' в поле 'Какой курс куплен'",
     )
 
+    AMO_COURSE_BAZOVYY: int = Field(
+        ...,
+        description="ID значения 'Базовый' в поле 'Какой курс куплен'",
+    )
+
     AMO_LEAD_FIELD_CLASS: int = Field(
         ...,
         description="ID поля 'В каком классе учится' в сделке (select)",
