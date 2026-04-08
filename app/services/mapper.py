@@ -64,7 +64,7 @@ class PaymentPayloadMapper:
         # Получаем тариф (первый из списка или None)
         purchased_course_enum_ids = client_data.get("purchased_course_enum_ids", [])
         tariff_id = purchased_course_enum_ids[0] if purchased_course_enum_ids else None
-        
+
         first_name, last_name = self._parse_name(contact_name)
 
         # Строим список курсов из позиций счета + предметов из amoCRM
@@ -140,10 +140,10 @@ class PaymentPayloadMapper:
             # Марафон 2к26: Базовый (RU), Стандарт (RU), ПРО (RU)
             # Годовой 2к27: ТОЛЬКО Стандарт (RU)
             final_name = mapped_name
-            
+
             if tariff_id:
                 tariff_suffix = None
-                
+
                 # Весенний курс 2к26: тарифы на английском/русском
                 if "Весенний курс 2к26" in mapped_name:
                     if tariff_id == settings.AMO_COURSE_STANDART:
@@ -154,7 +154,7 @@ class PaymentPayloadMapper:
                         tariff_suffix = "Самостоятельный"  # Русский
                     else:
                         logger.warning("Тариф %s не поддерживается для Весенний курс 2к26, пропускаем", tariff_id)
-                
+
                 # Марафон 2к26: Базовый, Стандарт, ПРО (русский)
                 elif "Марафон 2к26" in mapped_name:
                     if tariff_id == settings.AMO_COURSE_STANDART:
@@ -165,14 +165,14 @@ class PaymentPayloadMapper:
                         tariff_suffix = "Базовый"  # Русский
                     else:
                         logger.warning("Тариф %s не поддерживается для Марафон 2к26, пропускаем", tariff_id)
-                
+
                 # Годовой 2к27: ТОЛЬКО Стандарт (русский)
                 elif "Годовой 2к27" in mapped_name:
                     if tariff_id == settings.AMO_COURSE_STANDART:
                         tariff_suffix = "Стандарт"  # Русский
                     else:
                         logger.warning("Тариф %s не поддерживается для Годовой 2к27 (только Стандарт), пропускаем", tariff_id)
-                
+
                 if tariff_suffix:
                     final_name = f"{mapped_name} {tariff_suffix}"
                     logger.info("Добавлен тариф к названию: '%s' → '%s'", mapped_name, final_name)
