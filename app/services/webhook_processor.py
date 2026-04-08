@@ -128,9 +128,23 @@ class CatalogWebhookProcessor:
         logger.info("=" * 80)
 
         # 3. Отправляем на платформу
-        response = await self.platform_client.send_payment(payload)
-        logger.info("Платеж успешно отправлен на платформу: %s", response)
-        return response
+        try:
+            response = await self.platform_client.send_payment(payload)
+            logger.info("Платеж успешно отправлен на платформу: %s", response)
+            
+            # Добавляем примечание об успехе
+            await self._add_success_note(lead_id)
+            
+            return response
+            
+        except Exception as e:
+            logger.error("Ошибка при отправке платежа на платформу: %s", e)
+            
+            # Добавляем примечание об ошибке
+            await self._add_error_note(lead_id, str(e))
+            
+            # Пробрасываем исключение дальше
+            raise
 
     def _detect_event_type(self, parsed_data: dict[str, list[str]]) -> str | None:
         """
@@ -323,3 +337,78 @@ class CatalogWebhookProcessor:
         logger.warning("Поле BILL_PRICE не найдено в webhook")
         return 0
 
+    async def _add_success_note(self, lead_id: int) -> None:
+        """
+        Добавить примечание об успешной отправке на платформу.
+
+        Args:
+            lead_id: ID сделки
+        """
+        from datetime import datetime
+
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        note_text = f"""Данные успешно отправлены на платформу
+Время: {now}
+Статус: 200 OK
+
+Клиент получит доступ к курсам на платформе."""
+
+        try:
+            await self.amo_client.add_lead_note(lead_id, note_text)
+            logger.info("Добавлено примечание об успехе для lead_id=%s", lead_id)
+        except Exception as e:
+            logger.error("Не удалось добавить примечание об успехе: %s", e)
+
+    async def _add_error_note(self, lead_id: int, error_message: str) -> None:
+        """
+        Добавить примечание об ошибке отправки на платформу.
+
+        Args:
+            lead_id: ID сделки
+            error_message: Сообщение об ошибке
+        """
+        from datetime import datetime
+
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # Извлекаем статус код и текст ошибки из сообщения
+        status_code = "500"
+        error_detail = "Внутренняя ошибка платформы"
+
+        if "500" in error_message:
+            status_code = "500"
+            if "Что-то пошло не так" in error_message:
+                error_detail = "Что-то пошло не так! Обратитесь в тех поддержку!"
+        elif "400" in error_message:
+            status_code = "400"
+            error_detail = "Ошибка валидации данных"
+        elif "401" in error_message or "403" in error_message:
+            status_code = "401/403"
+            error_detail = "Ошибка авторизации"
+
+        note_text = f"""Ошибка отправки на платформу
+Время: {now}
+Статус: {status_code}
+Ответ платформы: {error_detail}
+
+Возможные причины:
+- Неправильно заполнены поля в сделке (класс, тариф, предметы)
+- Неправильно заполнены поля в контакте (email, телефон)
+- Неправильно заполнен счет (ссылка на сделку, названия курсов)
+- Технический сбой на платформе
+
+Действия:
+1. Проверить все обязательные поля в сделке и контакте
+2. Проверить что в счете указана правильная ссылка на сделку
+3. Повторно изменить статус счета на "Оплачен"
+4. Если ошибка повторяется - обратиться в техподдержку
+
+Подробная ошибка:
+{error_message}"""
+
+        try:
+            await self.amo_client.add_lead_note(lead_id, note_text)
+            logger.info("Добавлено примечание об ошибке для lead_id=%s", lead_id)
+        except Exception as e:
+            logger.error("Не удалось добавить примечание об ошибке: %s", e)

@@ -28,7 +28,9 @@ class AmoCRMClient:
             "Content-Type": "application/json",
         }
 
-    async def _make_request(self, method: str, endpoint: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def _make_request(
+        self, method: str, endpoint: str, params: dict[str, Any] | None = None, data: list[dict[str, Any]] | None = None
+    ) -> dict[str, Any]:
         """
         Выполнить HTTP запрос к API amoCRM с retry механизмом.
 
@@ -36,6 +38,7 @@ class AmoCRMClient:
             method: HTTP метод (GET, POST, PATCH)
             endpoint: Endpoint API (например, /api/v4/leads/123)
             params: Параметры запроса (для GET)
+            data: Данные для POST запроса
 
         Returns:
             Ответ от API в виде dict
@@ -59,6 +62,8 @@ class AmoCRMClient:
                     async with httpx.AsyncClient(timeout=30.0) as client:
                         if method == "GET":
                             response = await client.get(url, headers=self.headers, params=params)
+                        elif method == "POST":
+                            response = await client.post(url, headers=self.headers, json=data)
                         else:
                             raise ValueError(f"Unsupported HTTP method: {method}")
 
@@ -244,3 +249,27 @@ class AmoCRMClient:
             "contact_phone": contact_phone,
             "contact_email": contact_email,
         }
+
+    async def add_lead_note(self, lead_id: int, text: str) -> None:
+        """
+        Добавить примечание к сделке.
+
+        Args:
+            lead_id: ID сделки
+            text: Текст примечания
+        """
+        logger.info("Adding note to lead %s", lead_id)
+
+        note_data = {
+            "entity_id": lead_id,
+            "note_type": "common",
+            "params": {"text": text},
+        }
+
+        try:
+            await self._make_request("POST", f"/api/v4/leads/{lead_id}/notes", data=[note_data])
+            logger.info("Note added to lead %s", lead_id)
+
+        except Exception as e:
+            logger.error("Error adding note to lead: %s", e)
+            raise
