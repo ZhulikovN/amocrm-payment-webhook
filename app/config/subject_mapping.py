@@ -106,6 +106,8 @@ def get_class_mapping() -> dict[int, int]:
     """
     return {
         settings.AMO_CLASS_5_6: 6,  # 5-6 класс → 6
+        settings.AMO_CLASS_5: 5,    # 5 класс → 5
+        settings.AMO_CLASS_6: 6,    # 6 класс → 6
         settings.AMO_CLASS_7: 7,  # 7 класс → 7
         settings.AMO_CLASS_8: 8,  # 8 класс → 8
         settings.AMO_CLASS_9: 9,  # 9 класс → 9

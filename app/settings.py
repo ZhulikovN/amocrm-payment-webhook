@@ -147,6 +147,16 @@ class Settings(BaseSettings):
         description="ID значения '5-6 класс' в поле 'В каком классе учится'",
     )
 
+    AMO_CLASS_5: int = Field(
+        ...,
+        description="ID значения '5 класс' в поле 'В каком классе учится'",
+    )
+
+    AMO_CLASS_6: int = Field(
+        ...,
+        description="ID значения '6 класс' в поле 'В каком классе учится'",
+    )
+
     AMO_COURSE_STANDART: int = Field(
         ...,
         description="ID значения 'Стандарт' в поле 'Какой курс куплен'",
