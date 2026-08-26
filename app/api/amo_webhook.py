@@ -31,6 +31,8 @@ async def handle_amo_webhook(request: Request) -> dict[str, Any]:
         decoded = unquote_plus(text_body)
         parsed_data = parse_qs(decoded)
 
+        logger.info("Webhook parsed_data: %s", parsed_data)
+
         processor = CatalogWebhookProcessor()
         result = await processor.process_catalog_webhook(parsed_data)
 

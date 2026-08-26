@@ -48,9 +48,18 @@ class CatalogWebhookProcessor:
 
         # Извлекаем данные
         catalog_element_id = self._extract_catalog_element_id(parsed_data, event_type)
+        catalog_id = self._extract_catalog_id(parsed_data, event_type)
+        order_number = self._extract_order_number(parsed_data, event_type)
         lead_id = self._extract_lead_id(parsed_data, event_type)
         items = self._extract_items(parsed_data, event_type)
         amount = self._extract_amount(parsed_data, event_type)
+
+        if not lead_id and catalog_element_id and catalog_id and order_number:
+            logger.info(
+                "Ссылка на сделку не найдена в счёте, ищем по номеру заказа | order_number=%s",
+                order_number,
+            )
+            lead_id = await self.amo_client.find_lead_by_catalog_element_id(catalog_id, catalog_element_id, order_number)
 
         if not lead_id:
             raise ValueError("Не удалось извлечь lead_id из webhook")
@@ -209,6 +218,32 @@ class CatalogWebhookProcessor:
             return int(element_id_list[0])
         except (ValueError, IndexError):
             return None
+
+    def _extract_catalog_id(self, parsed_data: dict[str, list[str]], event_type: str) -> int | None:
+        """Извлечь ID каталога счетов."""
+        key = f"catalogs[{event_type}][0][catalog_id]"
+        catalog_id_list = parsed_data.get(key, [])
+        if not catalog_id_list:
+            return None
+
+        try:
+            return int(catalog_id_list[0])
+        except (ValueError, IndexError):
+            return None
+
+    def _extract_order_number(self, parsed_data: dict[str, list[str]], event_type: str) -> str | None:
+        """
+        Извлечь номер заказа из названия счёта.
+        'Заказ №97999797797' → '97999797797'
+        """
+        key = f"catalogs[{event_type}][0][name]"
+        name_list = parsed_data.get(key, [])
+        if not name_list:
+            return None
+
+        name = name_list[0]
+        digits = "".join(c for c in name if c.isdigit())
+        return digits if digits else None
 
     def _extract_lead_id(self, parsed_data: dict[str, list[str]], event_type: str) -> int | None:
         """

@@ -250,6 +250,80 @@ class AmoCRMClient:
             "contact_email": contact_email,
         }
 
+    async def find_lead_by_catalog_element_id(self, catalog_id: int, catalog_element_id: int, order_number: str) -> int | None:
+        """
+        Найти сделку по номеру счёта
+
+        Шаг 1: ищем лиды по query=order_number.
+        Шаг 2: для каждого лида проверяем /leads/{id}/links —
+                ищем ссылку на наш catalog_element_id в нашем catalog_id.
+
+        Args:
+            catalog_id: ID каталога счетов из webhook
+            catalog_element_id: ID элемента каталога (счёта) из webhook
+            order_number: Номер заказа (например "97999797797")
+
+        Returns:
+            int | None: ID найденной сделки или None
+        """
+        logger.info(
+            "Поиск сделки по номеру заказа | order_number=%s catalog_element_id=%s",
+            order_number,
+            catalog_element_id,
+        )
+
+        try:
+            # Шаг 1: ищем лиды по номеру заказа
+            leads_response = await self._make_request(
+                "GET",
+                "/api/v4/leads",
+                params={"query": order_number},
+            )
+            leads = leads_response.get("_embedded", {}).get("leads", [])
+
+            if not leads:
+                logger.warning("Лиды по query=%s не найдены", order_number)
+                return None
+
+            logger.info("Найдено лидов по query=%s: %s", order_number, len(leads))
+
+            # Шаг 2: для каждого лида проверяем ссылки
+            for lead in leads:
+                lead_id = int(lead["id"])
+
+                links_response = await self._make_request(
+                    "GET",
+                    f"/api/v4/leads/{lead_id}/links",
+                )
+                links = links_response.get("_embedded", {}).get("links", [])
+
+                for link in links:
+                    if (
+                        link.get("to_entity_type") == "catalog_elements"
+                        and int(link.get("to_entity_id", 0)) == catalog_element_id
+                        and link.get("metadata", {}).get("catalog_id") == catalog_id
+                    ):
+                        logger.info(
+                            "Сделка найдена через ссылки | lead_id=%s catalog_element_id=%s",
+                            lead_id,
+                            catalog_element_id,
+                        )
+                        return lead_id
+
+        except Exception as e:
+            logger.warning(
+                "Ошибка поиска сделки по order_number=%s: %s",
+                order_number,
+                e,
+            )
+
+        logger.warning(
+            "Сделка не найдена | order_number=%s catalog_element_id=%s",
+            order_number,
+            catalog_element_id,
+        )
+        return None
+
     async def add_lead_note(self, lead_id: int, text: str) -> None:
         """
         Добавить примечание к сделке.
