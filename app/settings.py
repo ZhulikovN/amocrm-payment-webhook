@@ -107,6 +107,71 @@ class Settings(BaseSettings):
         description="ID значения 'Русский язык | ОГЭ' в поле 'Какой предмет выбрал'",
     )
 
+    AMO_SUBJECT_RUSSIAN_MIDDLE: int = Field(
+        ...,
+        description="ID значения 'Русский 7-8' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_PHYSICS_MIDDLE: int = Field(
+        ...,
+        description="ID значения 'Физика 7-8' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_HISTORY_OGE: int = Field(
+        ...,
+        description="ID значения 'История | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_BIOLOGY_OGE: int = Field(
+        ...,
+        description="ID значения 'Биология | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_SOCIAL_OGE: int = Field(
+        ...,
+        description="ID значения 'Обществознание | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_INFORMATICS_OGE: int = Field(
+        ...,
+        description="ID значения 'Информатика | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_BIOLOGY_GLEB: int = Field(
+        ...,
+        description="ID значения 'Биология | Глеб' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_MATH_PROF_ILYAS: int = Field(
+        ...,
+        description="ID значения 'Математика | Профиль | Ильяс' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_GEOGRAPHY_OGE: int = Field(
+        ...,
+        description="ID значения 'География | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_GEOGRAPHY: int = Field(
+        ...,
+        description="ID значения 'География' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_PHYSICS_OGE: int = Field(
+        ...,
+        description="ID значения 'Физика | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_CHEMISTRY_OGE: int = Field(
+        ...,
+        description="ID значения 'Химия | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_HISTORY_MIDDLE: int = Field(
+        ...,
+        description="ID значения 'История 7-8' в поле 'Какой предмет выбрал'",
+    )
+
     AMO_CLASS_YOUNGER_9: int = Field(
         ...,
         description="ID значения 'Младше 9 класса' в поле 'В каком классе учится'",
