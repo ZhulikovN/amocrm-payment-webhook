@@ -70,6 +70,8 @@ class PaymentPayloadMapper:
         # Строим список курсов из позиций счета + предметов из amoCRM
         courses = self._build_courses(items, subjects_enum_ids, tariff_id)
 
+        telegram_id = client_data.get("telegram_id")
+
         payload = PlatformPayload(
             courses=courses,
             first_name=first_name,
@@ -77,6 +79,7 @@ class PaymentPayloadMapper:
             email=contact_email,
             phone=contact_phone,
             amount=amount,
+            telegram_id=telegram_id,
             **{"class": class_number},
         )
 

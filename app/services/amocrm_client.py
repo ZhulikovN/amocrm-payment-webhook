@@ -2,6 +2,7 @@
 
 import logging
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 import httpx
 from tenacity import (
@@ -211,6 +212,21 @@ class AmoCRMClient:
 
         contact_name = contact.get("name", "")
 
+        # telegram_id из поля "Ссылка на оплату обучения" — параметр td в URL
+        payment_link_url = lead_custom_fields.get(settings.AMO_LEAD_FIELD_PAYMENT_LINK)
+        telegram_id: str | None = None
+        if payment_link_url and isinstance(payment_link_url, str):
+            try:
+                parsed = urlparse(payment_link_url)
+                td_values = parse_qs(parsed.query).get("td")
+                if td_values:
+                    telegram_id = td_values[0]
+                    logger.info("telegram_id извлечён из ссылки на оплату: %s", telegram_id)
+                else:
+                    logger.debug("Параметр td не найден в ссылке на оплату: %s", payment_link_url)
+            except Exception:
+                logger.debug("Не удалось распарсить ссылку на оплату: %s", payment_link_url)
+
         contact_phone = None
         contact_email = None
 
@@ -248,6 +264,7 @@ class AmoCRMClient:
             "contact_name": contact_name,
             "contact_phone": contact_phone,
             "contact_email": contact_email,
+            "telegram_id": telegram_id,
         }
 
     async def find_lead_by_catalog_element_id(self, catalog_id: int, catalog_element_id: int, order_number: str) -> int | None:

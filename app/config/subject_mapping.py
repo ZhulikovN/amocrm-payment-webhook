@@ -28,7 +28,8 @@ def get_subject_mapping() -> dict[int, str]:
         settings.AMO_SUBJECT_MATH_PROF_SASHA: "maths2",  # Проф. мат (Саша) → maths2
         settings.AMO_SUBJECT_BIOLOGY_GELYA: "biology2",  # Биология (Геля) → biology2
         settings.AMO_SUBJECT_MATH_7_8: "middle_math",  # Математика 7-8 класс → middle_math
-        settings.AMO_SUBJECT_MATH_OGE: "maths-oge",  # Математика ОГЭ → maths-oge
+        settings.AMO_SUBJECT_MATH_OGE: "maths-oge",      # Математика ОГЭ → maths-oge
+        settings.AMO_SUBJECT_RUSSIAN_OGE: "russian",      # Русский язык | ОГЭ → russian
     }
 
 

@@ -24,3 +24,4 @@ class PlatformPayload(BaseModel):
     phone: str = Field(..., description="Телефон клиента")
     class_: int = Field(..., alias="class", serialization_alias="class", description="Класс ученика (1-11)")
     amount: int = Field(..., description="Общая сумма заказа")
+    telegram_id: str | None = Field(None, description="Telegram ID клиента (из параметра td в ссылке на оплату)")

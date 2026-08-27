@@ -102,6 +102,11 @@ class Settings(BaseSettings):
         description="ID значения 'Математика ОГЭ' в поле 'Какой предмет выбрал'",
     )
 
+    AMO_SUBJECT_RUSSIAN_OGE: int = Field(
+        ...,
+        description="ID значения 'Русский язык | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
     AMO_CLASS_YOUNGER_9: int = Field(
         ...,
         description="ID значения 'Младше 9 класса' в поле 'В каком классе учится'",
@@ -175,6 +180,11 @@ class Settings(BaseSettings):
     AMO_COURSE_BAZOVYY: int = Field(
         ...,
         description="ID значения 'Базовый' в поле 'Какой курс куплен'",
+    )
+
+    AMO_LEAD_FIELD_PAYMENT_LINK: int = Field(
+        ...,
+        description="ID поля 'Ссылка на оплату обучения' в сделке (содержит td=telegram_id в новом формате)",
     )
 
     AMO_LEAD_FIELD_CLASS: int = Field(
