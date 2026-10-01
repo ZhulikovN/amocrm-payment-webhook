@@ -1,7 +1,10 @@
 """Клиент для работы с API amoCRM."""
 
+import asyncio
 import logging
+import time
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 import httpx
 from tenacity import (
@@ -14,6 +17,32 @@ from tenacity import (
 from app.settings import settings
 
 logger = logging.getLogger(__name__)
+
+
+class _AsyncRateLimiter:
+    """
+    Асинхронный лимитер запросов на основе минимального интервала.
+
+    Гарантирует, что между последовательными вызовами acquire() пройдёт
+    не менее 1/max_per_second секунд.
+    """
+
+    def __init__(self, max_per_second: float) -> None:
+        self._interval = 1.0 / max_per_second
+        self._lock = asyncio.Lock()
+        self._last_call: float = 0.0
+
+    async def acquire(self) -> None:
+        async with self._lock:
+            now = time.monotonic()
+            wait = self._interval - (now - self._last_call)
+            if wait > 0:
+                await asyncio.sleep(wait)
+            self._last_call = time.monotonic()
+
+
+# Лимит 4 req/sec — один экземпляр на весь процесс
+_amo_limiter = _AsyncRateLimiter(max_per_second=4.0)
 
 
 class AmoCRMClient:
@@ -59,6 +88,9 @@ class AmoCRMClient:
         ):
             with attempt:
                 try:
+                    # Проактивный лимит: не более 4 req/sec
+                    await _amo_limiter.acquire()
+
                     async with httpx.AsyncClient(timeout=30.0) as client:
                         if method == "GET":
                             response = await client.get(url, headers=self.headers, params=params)
@@ -211,6 +243,21 @@ class AmoCRMClient:
 
         contact_name = contact.get("name", "")
 
+        # telegram_id из поля "Ссылка на оплату обучения" — параметр td в URL
+        payment_link_url = lead_custom_fields.get(settings.AMO_LEAD_FIELD_PAYMENT_LINK)
+        telegram_id: str | None = None
+        if payment_link_url and isinstance(payment_link_url, str):
+            try:
+                parsed = urlparse(payment_link_url)
+                td_values = parse_qs(parsed.query).get("td")
+                if td_values:
+                    telegram_id = td_values[0]
+                    logger.info("telegram_id извлечён из ссылки на оплату: %s", telegram_id)
+                else:
+                    logger.debug("Параметр td не найден в ссылке на оплату: %s", payment_link_url)
+            except Exception:
+                logger.debug("Не удалось распарсить ссылку на оплату: %s", payment_link_url)
+
         contact_phone = None
         contact_email = None
 
@@ -248,7 +295,82 @@ class AmoCRMClient:
             "contact_name": contact_name,
             "contact_phone": contact_phone,
             "contact_email": contact_email,
+            "telegram_id": telegram_id,
         }
+
+    async def find_lead_by_catalog_element_id(self, catalog_id: int, catalog_element_id: int, order_number: str) -> int | None:
+        """
+        Найти сделку по номеру счёта
+
+        Шаг 1: ищем лиды по query=order_number.
+        Шаг 2: для каждого лида проверяем /leads/{id}/links —
+                ищем ссылку на наш catalog_element_id в нашем catalog_id.
+
+        Args:
+            catalog_id: ID каталога счетов из webhook
+            catalog_element_id: ID элемента каталога (счёта) из webhook
+            order_number: Номер заказа (например "97999797797")
+
+        Returns:
+            int | None: ID найденной сделки или None
+        """
+        logger.info(
+            "Поиск сделки по номеру заказа | order_number=%s catalog_element_id=%s",
+            order_number,
+            catalog_element_id,
+        )
+
+        try:
+            # Шаг 1: ищем лиды по номеру заказа
+            leads_response = await self._make_request(
+                "GET",
+                "/api/v4/leads",
+                params={"query": order_number},
+            )
+            leads = leads_response.get("_embedded", {}).get("leads", [])
+
+            if not leads:
+                logger.warning("Лиды по query=%s не найдены", order_number)
+                return None
+
+            logger.info("Найдено лидов по query=%s: %s", order_number, len(leads))
+
+            # Шаг 2: для каждого лида проверяем ссылки
+            for lead in leads:
+                lead_id = int(lead["id"])
+
+                links_response = await self._make_request(
+                    "GET",
+                    f"/api/v4/leads/{lead_id}/links",
+                )
+                links = links_response.get("_embedded", {}).get("links", [])
+
+                for link in links:
+                    if (
+                        link.get("to_entity_type") == "catalog_elements"
+                        and int(link.get("to_entity_id", 0)) == catalog_element_id
+                        and link.get("metadata", {}).get("catalog_id") == catalog_id
+                    ):
+                        logger.info(
+                            "Сделка найдена через ссылки | lead_id=%s catalog_element_id=%s",
+                            lead_id,
+                            catalog_element_id,
+                        )
+                        return lead_id
+
+        except Exception as e:
+            logger.warning(
+                "Ошибка поиска сделки по order_number=%s: %s",
+                order_number,
+                e,
+            )
+
+        logger.warning(
+            "Сделка не найдена | order_number=%s catalog_element_id=%s",
+            order_number,
+            catalog_element_id,
+        )
+        return None
 
     async def add_lead_note(self, lead_id: int, text: str) -> None:
         """

@@ -48,9 +48,18 @@ class CatalogWebhookProcessor:
 
         # Извлекаем данные
         catalog_element_id = self._extract_catalog_element_id(parsed_data, event_type)
+        catalog_id = self._extract_catalog_id(parsed_data, event_type)
+        order_number = self._extract_order_number(parsed_data, event_type)
         lead_id = self._extract_lead_id(parsed_data, event_type)
         items = self._extract_items(parsed_data, event_type)
         amount = self._extract_amount(parsed_data, event_type)
+
+        if not lead_id and catalog_element_id and catalog_id and order_number:
+            logger.info(
+                "Ссылка на сделку не найдена в счёте, ищем по номеру заказа | order_number=%s",
+                order_number,
+            )
+            lead_id = await self.amo_client.find_lead_by_catalog_element_id(catalog_id, catalog_element_id, order_number)
 
         if not lead_id:
             raise ValueError("Не удалось извлечь lead_id из webhook")
@@ -98,52 +107,47 @@ class CatalogWebhookProcessor:
         """
         logger.info("Начало обработки платежа для lead_id=%s", lead_id)
 
-        # 1. Загружаем данные клиента из amoCRM
-        lead_and_contact = await self.amo_client.get_lead_with_contact(lead_id)
-        client_data = self.amo_client.extract_lead_data(lead_and_contact["lead"], lead_and_contact["contact"])
-
-        logger.info("Данные клиента загружены: %s", client_data.get("contact_email"))
-        logger.info("Client data: %s", client_data)
-
-        # 2. Маппим данные в payload платформы
-        payload = self.mapper.map_to_platform_payload(
-            items=items,
-            amount=amount,
-            client_data=client_data,
-        )
-
-        logger.info("Payload создан для отправки на платформу")
-
-        # Логируем финальный payload в JSON формате
-        import json
-        payload_dict = payload.model_dump(mode="json", exclude_none=False, by_alias=True)
-        payload_json = json.dumps(payload_dict, separators=(",", ":"), ensure_ascii=False, indent=2)
-
-        logger.info("=" * 80)
-        logger.info("ФИНАЛЬНЫЙ PAYLOAD ДЛЯ ПЛАТФОРМЫ:")
-        logger.info("=" * 80)
-        logger.info("%s", payload_json)
-        logger.info("=" * 80)
-        logger.info("Payload size: %s bytes", len(payload_json))
-        logger.info("=" * 80)
-
-        # 3. Отправляем на платформу
         try:
+            # 1. Загружаем данные клиента из amoCRM
+            lead_and_contact = await self.amo_client.get_lead_with_contact(lead_id)
+            client_data = self.amo_client.extract_lead_data(lead_and_contact["lead"], lead_and_contact["contact"])
+
+            logger.info("Данные клиента загружены: %s", client_data.get("contact_email"))
+            logger.info("Client data: %s", client_data)
+
+            # 2. Маппим данные в payload платформы
+            payload = self.mapper.map_to_platform_payload(
+                items=items,
+                amount=amount,
+                client_data=client_data,
+            )
+
+            logger.info("Payload создан для отправки на платформу")
+
+            # Логируем финальный payload в JSON формате
+            import json
+            payload_dict = payload.model_dump(mode="json", exclude_none=False, by_alias=True)
+            payload_json = json.dumps(payload_dict, separators=(",", ":"), ensure_ascii=False, indent=2)
+
+            logger.info("=" * 80)
+            logger.info("ФИНАЛЬНЫЙ PAYLOAD ДЛЯ ПЛАТФОРМЫ:")
+            logger.info("=" * 80)
+            logger.info("%s", payload_json)
+            logger.info("=" * 80)
+            logger.info("Payload size: %s bytes", len(payload_json))
+            logger.info("=" * 80)
+
+            # 3. Отправляем на платформу
             response = await self.platform_client.send_payment(payload)
             logger.info("Платеж успешно отправлен на платформу: %s", response)
-            
-            # Добавляем примечание об успехе
+
             await self._add_success_note(lead_id)
-            
+
             return response
-            
+
         except Exception as e:
-            logger.error("Ошибка при отправке платежа на платформу: %s", e)
-            
-            # Добавляем примечание об ошибке
+            logger.error("Ошибка при обработке платежа для lead_id=%s: %s", lead_id, e)
             await self._add_error_note(lead_id, str(e))
-            
-            # Пробрасываем исключение дальше
             raise
 
     def _detect_event_type(self, parsed_data: dict[str, list[str]]) -> str | None:
@@ -209,6 +213,39 @@ class CatalogWebhookProcessor:
             return int(element_id_list[0])
         except (ValueError, IndexError):
             return None
+
+    def _extract_catalog_id(self, parsed_data: dict[str, list[str]], event_type: str) -> int | None:
+        """Извлечь ID каталога счетов."""
+        key = f"catalogs[{event_type}][0][catalog_id]"
+        catalog_id_list = parsed_data.get(key, [])
+        if not catalog_id_list:
+            return None
+
+        try:
+            return int(catalog_id_list[0])
+        except (ValueError, IndexError):
+            return None
+
+    def _extract_order_number(self, parsed_data: dict[str, list[str]], event_type: str) -> str | None:
+        """
+        Извлечь номер заказа из названия счёта.
+        'Заказ №97999797797' → '97999797797'
+        'Заказ №11bc620e64a4421989e0006354f716e7' → '11bc620e64a4421989e0006354f716e7'
+        """
+        key = f"catalogs[{event_type}][0][name]"
+        name_list = parsed_data.get(key, [])
+        if not name_list:
+            return None
+
+        name = name_list[0]
+        # Берём всё после '№', сохраняя исходный формат (цифры или UUID)
+        if "№" in name:
+            order_number = name.split("№", 1)[1].strip()
+            return order_number if order_number else None
+
+        # Fallback: только цифры если формат нестандартный
+        digits = "".join(c for c in name if c.isdigit())
+        return digits if digits else None
 
     def _extract_lead_id(self, parsed_data: dict[str, list[str]], event_type: str) -> int | None:
         """
@@ -372,40 +409,37 @@ class CatalogWebhookProcessor:
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # Извлекаем статус код и текст ошибки из сообщения
-        status_code = "500"
-        error_detail = "Внутренняя ошибка платформы"
-
-        if "500" in error_message:
-            status_code = "500"
-            if "Что-то пошло не так" in error_message:
-                error_detail = "Что-то пошло не так! Обратитесь в тех поддержку!"
-        elif "400" in error_message:
-            status_code = "400"
-            error_detail = "Ошибка валидации данных"
-        elif "401" in error_message or "403" in error_message:
-            status_code = "401/403"
-            error_detail = "Ошибка авторизации"
-
-        note_text = f"""Ошибка отправки на платформу
+        note_text = f"""Ошибка: данные не отправлены на платформу
 Время: {now}
-Статус: {status_code}
-Ответ платформы: {error_detail}
 
-Возможные причины:
-- Неправильно заполнены поля в сделке (класс, тариф, предметы)
-- Неправильно заполнены поля в контакте (email, телефон)
-- Неправильно заполнен счет (ссылка на сделку, названия курсов)
-- Технический сбой на платформе
+Что проверить в контакте:
+- Email (поле "Email раб.") — обязателен
+- Телефон (поле "Раб. тел") — обязателен
+- Имя и фамилия — должны быть заполнены
+
+Что проверить в сделке:
+- Поле "Класс" — должен быть указан класс (5_6, 5, 6, 7, 8, 9, 10 или 11)
+- Поле "Какой предмет выбрал" — выбрать все предметы которые клиент купил
+- Количество предметов должно совпадать с количеством позиций в счёте
+
+Что проверить в счёте:
+- Для каждого предмета — отдельная позиция
+- Название позиции из списка поддерживаемых:
+  Весенний курс 2к26 ЕГЭ 11 класс
+  Весенний курс 2к26 ЕГЭ 10 класс
+  Весенний курс 2к26 ОГЭ
+  Марафон 2к26 ЕГЭ
+  Годовой курс 2к27 ЕГЭ 11 класс
+  Годовой курс 2к27 ЕГЭ 10 класс
+  Годовой курс 2к27 ОГЭ 9 класс
+- Цена — стоимость за 1 месяц конкретного предмета (не общая сумма, а цена одного предмета)
+- Количество — количество месяцев
+- Каждая позиция в счёте должна соответствовать одному предмету из поля "Какой предмет выбрал" в сделке (порядок важен)
 
 Действия:
-1. Проверить все обязательные поля в сделке и контакте
-2. Проверить что в счете указана правильная ссылка на сделку
-3. Повторно изменить статус счета на "Оплачен"
-4. Если ошибка повторяется - обратиться в техподдержку
-
-Подробная ошибка:
-{error_message}"""
+1. Исправить поля выше
+2. Повторно изменить статус счёта на "Оплачен"
+"""
 
         try:
             await self.amo_client.add_lead_note(lead_id, note_text)

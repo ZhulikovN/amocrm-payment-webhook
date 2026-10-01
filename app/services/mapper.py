@@ -70,6 +70,8 @@ class PaymentPayloadMapper:
         # Строим список курсов из позиций счета + предметов из amoCRM
         courses = self._build_courses(items, subjects_enum_ids, tariff_id)
 
+        telegram_id = client_data.get("telegram_id")
+
         payload = PlatformPayload(
             courses=courses,
             first_name=first_name,
@@ -77,6 +79,7 @@ class PaymentPayloadMapper:
             email=contact_email,
             phone=contact_phone,
             amount=amount,
+            telegram_id=telegram_id,
             **{"class": class_number},
         )
 
@@ -166,12 +169,28 @@ class PaymentPayloadMapper:
                     else:
                         logger.warning("Тариф %s не поддерживается для Марафон 2к26, пропускаем", tariff_id)
 
-                # Годовой 2к27: ТОЛЬКО Стандарт (русский)
+                # Годовой 2к27 ЕГЭ и ОГЭ: Стандарт и Премиум
+                # ЕГЭ: "Годовой 2к27 ЕГЭ 11 класс Стандарт" / "...Премиум"
+                # ОГЭ: "Годовой 2к27 ОГЭ Стандарт" / "...Премиум"
                 elif "Годовой 2к27" in mapped_name:
                     if tariff_id == settings.AMO_COURSE_STANDART:
-                        tariff_suffix = "Стандарт"  # Русский
+                        tariff_suffix = "Стандарт"
+                    elif tariff_id == settings.AMO_COURSE_PREMIUM:
+                        tariff_suffix = "Премиум"
                     else:
-                        logger.warning("Тариф %s не поддерживается для Годовой 2к27 (только Стандарт), пропускаем", tariff_id)
+                        logger.warning("Тариф %s не поддерживается для Годовой 2к27, пропускаем", tariff_id)
+
+                # Годовой 2к26 ЕГЭ: формат платформы — тариф идёт перед классом
+                # "Годовой 2к26 ЕГЭ 11 класс" → "Годовой 2к26 ЕГЭ Стандарт 11 класс"
+                elif "Годовой 2к26 ЕГЭ" in mapped_name:
+                    if tariff_id == settings.AMO_COURSE_STANDART:
+                        final_name = mapped_name.replace("ЕГЭ ", "ЕГЭ Стандарт ")
+                        logger.info("Добавлен тариф к названию: '%s' → '%s'", mapped_name, final_name)
+                    elif tariff_id == settings.AMO_COURSE_PREMIUM:
+                        final_name = mapped_name.replace("ЕГЭ ", "ЕГЭ Премиум ")
+                        logger.info("Добавлен тариф к названию: '%s' → '%s'", mapped_name, final_name)
+                    else:
+                        logger.warning("Тариф %s не поддерживается для Годовой 2к26 ЕГЭ, пропускаем", tariff_id)
 
                 if tariff_suffix:
                     final_name = f"{mapped_name} {tariff_suffix}"

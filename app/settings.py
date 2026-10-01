@@ -102,6 +102,76 @@ class Settings(BaseSettings):
         description="ID значения 'Математика ОГЭ' в поле 'Какой предмет выбрал'",
     )
 
+    AMO_SUBJECT_RUSSIAN_OGE: int = Field(
+        ...,
+        description="ID значения 'Русский язык | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_RUSSIAN_MIDDLE: int = Field(
+        ...,
+        description="ID значения 'Русский 7-8' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_PHYSICS_MIDDLE: int = Field(
+        ...,
+        description="ID значения 'Физика 7-8' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_HISTORY_OGE: int = Field(
+        ...,
+        description="ID значения 'История | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_BIOLOGY_OGE: int = Field(
+        ...,
+        description="ID значения 'Биология | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_SOCIAL_OGE: int = Field(
+        ...,
+        description="ID значения 'Обществознание | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_INFORMATICS_OGE: int = Field(
+        ...,
+        description="ID значения 'Информатика | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_BIOLOGY_GLEB: int = Field(
+        ...,
+        description="ID значения 'Биология | Глеб' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_MATH_PROF_ILYAS: int = Field(
+        ...,
+        description="ID значения 'Математика | Профиль | Ильяс' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_GEOGRAPHY_OGE: int = Field(
+        ...,
+        description="ID значения 'География | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_GEOGRAPHY: int = Field(
+        ...,
+        description="ID значения 'География' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_PHYSICS_OGE: int = Field(
+        ...,
+        description="ID значения 'Физика | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_CHEMISTRY_OGE: int = Field(
+        ...,
+        description="ID значения 'Химия | ОГЭ' в поле 'Какой предмет выбрал'",
+    )
+
+    AMO_SUBJECT_HISTORY_MIDDLE: int = Field(
+        ...,
+        description="ID значения 'История 7-8' в поле 'Какой предмет выбрал'",
+    )
+
     AMO_CLASS_YOUNGER_9: int = Field(
         ...,
         description="ID значения 'Младше 9 класса' в поле 'В каком классе учится'",
@@ -147,6 +217,16 @@ class Settings(BaseSettings):
         description="ID значения '5-6 класс' в поле 'В каком классе учится'",
     )
 
+    AMO_CLASS_5: int = Field(
+        ...,
+        description="ID значения '5 класс' в поле 'В каком классе учится'",
+    )
+
+    AMO_CLASS_6: int = Field(
+        ...,
+        description="ID значения '6 класс' в поле 'В каком классе учится'",
+    )
+
     AMO_COURSE_STANDART: int = Field(
         ...,
         description="ID значения 'Стандарт' в поле 'Какой курс куплен'",
@@ -165,6 +245,16 @@ class Settings(BaseSettings):
     AMO_COURSE_BAZOVYY: int = Field(
         ...,
         description="ID значения 'Базовый' в поле 'Какой курс куплен'",
+    )
+
+    AMO_COURSE_PREMIUM: int = Field(
+        ...,
+        description="ID значения 'Премиум' в поле 'Какой курс куплен'",
+    )
+
+    AMO_LEAD_FIELD_PAYMENT_LINK: int = Field(
+        ...,
+        description="ID поля 'Ссылка на оплату обучения' в сделке (содержит td=telegram_id в новом формате)",
     )
 
     AMO_LEAD_FIELD_CLASS: int = Field(

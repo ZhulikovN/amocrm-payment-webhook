@@ -14,21 +14,38 @@ def get_subject_mapping() -> dict[int, str]:
         dict[int, str]: Словарь маппинга предметов
     """
     return {
-        settings.AMO_SUBJECT_OBSHCHESTVO: "social",  # Обществознание → social
-        settings.AMO_SUBJECT_ENGLISH: "english",  # Английский язык → english
-        settings.AMO_SUBJECT_HISTORY: "history",  # История → history
-        settings.AMO_SUBJECT_RUSSIAN: "russian",  # Русский → russian
-        settings.AMO_SUBJECT_PHYSICS: "physics",  # Физика → physics
-        settings.AMO_SUBJECT_CHEMISTRY: "chemistry",  # Химия → chemistry
-        settings.AMO_SUBJECT_LITERATURE: "literature",  # Литература → literature
-        settings.AMO_SUBJECT_MATH_PROF_MASHA: "maths",  # Проф. мат (Маша) → maths
-        settings.AMO_SUBJECT_MATH_BASE: "maths-base",  # Математика (база) → maths-base
-        settings.AMO_SUBJECT_BIOLOGY_ZHENYA: "biology",  # Биология (Женя) → biology
-        settings.AMO_SUBJECT_INFORMATICS: "informatics",  # Информатика → informatics
-        settings.AMO_SUBJECT_MATH_PROF_SASHA: "maths2",  # Проф. мат (Саша) → maths2
-        settings.AMO_SUBJECT_BIOLOGY_GELYA: "biology2",  # Биология (Геля) → biology2
-        settings.AMO_SUBJECT_MATH_7_8: "middle_math",  # Математика 7-8 класс → middle_math
-        settings.AMO_SUBJECT_MATH_OGE: "maths-oge",  # Математика ОГЭ → maths-oge
+        # ЕГЭ предметы
+        settings.AMO_SUBJECT_OBSHCHESTVO: "social",           # Обществознание → social
+        settings.AMO_SUBJECT_ENGLISH: "english",              # Английский язык → english
+        settings.AMO_SUBJECT_HISTORY: "history",              # История → history
+        settings.AMO_SUBJECT_RUSSIAN: "russian",              # Русский язык → russian
+        settings.AMO_SUBJECT_PHYSICS: "physics",              # Физика → physics
+        settings.AMO_SUBJECT_CHEMISTRY: "chemistry",          # Химия → chemistry
+        settings.AMO_SUBJECT_LITERATURE: "literature",        # Литература → literature
+        settings.AMO_SUBJECT_MATH_PROF_MASHA: "maths",        # Математика Профиль Маша → maths
+        settings.AMO_SUBJECT_MATH_PROF_SASHA: "maths2",       # Математика Профиль Саша → maths2
+        settings.AMO_SUBJECT_MATH_PROF_ILYAS: "maths3",       # Математика Профиль Ильяс → maths3
+        settings.AMO_SUBJECT_MATH_BASE: "maths-base",         # Математика База → maths-base
+        settings.AMO_SUBJECT_BIOLOGY_ZHENYA: "biology",       # Биология Женя → biology
+        settings.AMO_SUBJECT_BIOLOGY_GELYA: "biology2",       # Биология Геля → biology2
+        settings.AMO_SUBJECT_BIOLOGY_GLEB: "biology3",        # Биология Глеб → biology3
+        settings.AMO_SUBJECT_INFORMATICS: "informatics",      # Информатика → informatics
+        settings.AMO_SUBJECT_GEOGRAPHY: "geography",          # География → geography
+        # ОГЭ предметы
+        settings.AMO_SUBJECT_MATH_OGE: "maths-oge",           # Математика ОГЭ → maths-oge
+        settings.AMO_SUBJECT_RUSSIAN_OGE: "russian-oge",      # Русский язык ОГЭ → russian-oge
+        settings.AMO_SUBJECT_HISTORY_OGE: "history-oge",      # История ОГЭ → history-oge
+        settings.AMO_SUBJECT_BIOLOGY_OGE: "biology-oge",      # Биология ОГЭ → biology-oge
+        settings.AMO_SUBJECT_SOCIAL_OGE: "social-oge",        # Обществознание ОГЭ → social-oge
+        settings.AMO_SUBJECT_INFORMATICS_OGE: "informatics-oge",  # Информатика ОГЭ → informatics-oge
+        settings.AMO_SUBJECT_GEOGRAPHY_OGE: "geography-oge",  # География ОГЭ → geography-oge
+        settings.AMO_SUBJECT_PHYSICS_OGE: "physics-oge",      # Физика ОГЭ → physics-oge
+        settings.AMO_SUBJECT_CHEMISTRY_OGE: "chemistry-oge",  # Химия ОГЭ → chemistry-oge
+        # 7-8 класс (средняя школа)
+        settings.AMO_SUBJECT_MATH_7_8: "middle_math",         # Математика 6-8 → middle_math
+        settings.AMO_SUBJECT_RUSSIAN_MIDDLE: "russian-middle", # Русский 7-8 → russian-middle
+        settings.AMO_SUBJECT_PHYSICS_MIDDLE: "middle_physic",  # Физика 7-8 → middle_physic
+        settings.AMO_SUBJECT_HISTORY_MIDDLE: "history-middle", # История 7-8 → history-middle
     }
 
 
@@ -106,6 +123,8 @@ def get_class_mapping() -> dict[int, int]:
     """
     return {
         settings.AMO_CLASS_5_6: 6,  # 5-6 класс → 6
+        settings.AMO_CLASS_5: 5,    # 5 класс → 5
+        settings.AMO_CLASS_6: 6,    # 6 класс → 6
         settings.AMO_CLASS_7: 7,  # 7 класс → 7
         settings.AMO_CLASS_8: 8,  # 8 класс → 8
         settings.AMO_CLASS_9: 9,  # 9 класс → 9
@@ -206,9 +225,16 @@ def get_course_name_text_mapping() -> dict[str, str]:
         # Марафон 2к26
         "Марафон 2к26 ЕГЭ": "Марафон 2к26 ЕГЭ",
 
-        # Годовой курс 2к27 (только 10 и 11 класс ЕГЭ)
+        # Годовой курс 2к27 ЕГЭ (10 и 11 класс)
         "Годовой курс 2к27 ЕГЭ 11 класс": "Годовой 2к27 ЕГЭ 11 класс",
         "Годовой курс 2к27 ЕГЭ 10 класс": "Годовой 2к27 ЕГЭ 10 класс",
+
+        # Годовой курс 2к27 ОГЭ — платформа не включает "9 класс" в название
+        "Годовой курс 2к27 ОГЭ 9 класс": "Годовой 2к27 ОГЭ",
+
+        # Годовой курс 2к26 ЕГЭ (10 и 11 класс)
+        "Годовой курс 2к26 ЕГЭ 11 класс": "Годовой 2к26 ЕГЭ 11 класс",
+        "Годовой курс 2к26 ЕГЭ 10 класс": "Годовой 2к26 ЕГЭ 10 класс",
     }
 
 
