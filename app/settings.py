@@ -247,6 +247,11 @@ class Settings(BaseSettings):
         description="ID значения 'Базовый' в поле 'Какой курс куплен'",
     )
 
+    AMO_COURSE_PREMIUM: int = Field(
+        ...,
+        description="ID значения 'Премиум' в поле 'Какой курс куплен'",
+    )
+
     AMO_LEAD_FIELD_PAYMENT_LINK: int = Field(
         ...,
         description="ID поля 'Ссылка на оплату обучения' в сделке (содержит td=telegram_id в новом формате)",
