@@ -230,6 +230,7 @@ class CatalogWebhookProcessor:
         """
         Извлечь номер заказа из названия счёта.
         'Заказ №97999797797' → '97999797797'
+        'Заказ №11bc620e64a4421989e0006354f716e7' → '11bc620e64a4421989e0006354f716e7'
         """
         key = f"catalogs[{event_type}][0][name]"
         name_list = parsed_data.get(key, [])
@@ -237,6 +238,12 @@ class CatalogWebhookProcessor:
             return None
 
         name = name_list[0]
+        # Берём всё после '№', сохраняя исходный формат (цифры или UUID)
+        if "№" in name:
+            order_number = name.split("№", 1)[1].strip()
+            return order_number if order_number else None
+
+        # Fallback: только цифры если формат нестандартный
         digits = "".join(c for c in name if c.isdigit())
         return digits if digits else None
 
@@ -432,8 +439,7 @@ class CatalogWebhookProcessor:
 Действия:
 1. Исправить поля выше
 2. Повторно изменить статус счёта на "Оплачен"
-
-Детали ошибки: {error_message}"""
+"""
 
         try:
             await self.amo_client.add_lead_note(lead_id, note_text)
