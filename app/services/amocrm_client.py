@@ -1,6 +1,8 @@
 """Клиент для работы с API amoCRM."""
 
+import asyncio
 import logging
+import time
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
@@ -15,6 +17,32 @@ from tenacity import (
 from app.settings import settings
 
 logger = logging.getLogger(__name__)
+
+
+class _AsyncRateLimiter:
+    """
+    Асинхронный лимитер запросов на основе минимального интервала.
+
+    Гарантирует, что между последовательными вызовами acquire() пройдёт
+    не менее 1/max_per_second секунд.
+    """
+
+    def __init__(self, max_per_second: float) -> None:
+        self._interval = 1.0 / max_per_second
+        self._lock = asyncio.Lock()
+        self._last_call: float = 0.0
+
+    async def acquire(self) -> None:
+        async with self._lock:
+            now = time.monotonic()
+            wait = self._interval - (now - self._last_call)
+            if wait > 0:
+                await asyncio.sleep(wait)
+            self._last_call = time.monotonic()
+
+
+# Лимит 4 req/sec — один экземпляр на весь процесс
+_amo_limiter = _AsyncRateLimiter(max_per_second=4.0)
 
 
 class AmoCRMClient:
@@ -60,6 +88,9 @@ class AmoCRMClient:
         ):
             with attempt:
                 try:
+                    # Проактивный лимит: не более 4 req/sec
+                    await _amo_limiter.acquire()
+
                     async with httpx.AsyncClient(timeout=30.0) as client:
                         if method == "GET":
                             response = await client.get(url, headers=self.headers, params=params)
